@@ -2,62 +2,102 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>주차 현황 대시보드</title>
     <style>
-        :root { --primary: #0067bc; --bg: #f4f4f9; --text: #333; --gray: #888; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Pretendard", Roboto, sans-serif; background: var(--bg); display: flex; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        :root { --primary: #0067bc; --bg: #ffffff; --text: #333; --gray: #888; }
         
-        .container { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 420px; height: fit-content; align-self: center; }
+        /* 1. Reset 및 전체화면 설정 */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Pretendard", Roboto, sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            padding: 0;
+            height: 100dvh; /* iOS 주소창 대응 높이 */
+            overflow: hidden; /* 전체 스크롤 방지 */
+            display: flex;
+            flex-direction: column;
+        }
         
-        h1 { text-align: center; color: var(--text); margin: 0 0 5px 0; font-size: 1.4rem; font-weight: 800; }
-        p.date-info { text-align: center; color: var(--gray); font-size: 0.9rem; margin-bottom: 2rem; }
+        /* 2. 컨테이너: 화면 꽉 채우기 */
+        .container { 
+            width: 100%; 
+            height: 100%; 
+            padding: 20px 24px; 
+            display: flex; 
+            flex-direction: column; 
+            max-width: 600px; /* 아이패드 등 큰 화면 대응 */
+            margin: 0 auto;
+        }
+        
+        /* 상단 영역 (고정) */
+        header { flex-shrink: 0; margin-bottom: 20px; }
+        h1 { text-align: center; color: var(--text); margin: 0 0 5px 0; font-size: 1.3rem; font-weight: 800; }
+        p.date-info { text-align: center; color: var(--gray); font-size: 0.85rem; margin: 0; }
 
-        .card { text-align: center; margin-bottom: 25px; }
-        .card h2 { margin: 0; font-size: 0.95rem; color: var(--gray); font-weight: 500; }
+        /* 메인 카드 (고정) */
+        .card { text-align: center; margin-bottom: 20px; flex-shrink: 0; }
+        .card h2 { margin: 0; font-size: 0.9rem; color: var(--gray); font-weight: 500; }
         
-        .card .value { font-size: 3.5rem; font-weight: 800; color: var(--text); margin: 5px 0; letter-spacing: -1px; display: flex; justify-content: center; align-items: baseline; gap: 8px; }
-        .card .unit { font-size: 1.2rem; font-weight: 600; color: var(--gray); transform: translateY(-5px); }
+        /* 숫자 크기 미세 조정 */
+        .card .value { font-size: 3.2rem; font-weight: 800; color: var(--text); margin: 0; letter-spacing: -1px; display: flex; justify-content: center; align-items: baseline; gap: 6px; line-height: 1.2; }
+        .card .unit { font-size: 1.1rem; font-weight: 600; color: var(--gray); transform: translateY(-6px); }
         
-        .progress-container { position: relative; margin-top: 15px; }
-        .progress-bar { height: 12px; background: #eee; border-radius: 6px; overflow: hidden; }
+        .progress-container { position: relative; margin-top: 12px; }
+        .progress-bar { height: 10px; background: #f0f0f0; border-radius: 5px; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
-        .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--gray); margin-top: 5px; }
+        .progress-label { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--gray); margin-top: 5px; }
 
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-        .info-item { background: #f8f9fa; padding: 15px; border-radius: 12px; text-align: center; }
-        .info-label { font-size: 0.8rem; color: var(--gray); display: block; margin-bottom: 5px; }
-        .info-val { font-size: 1.2rem; font-weight: 700; color: var(--text); }
+        /* 정보 그리드 (고정) */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; flex-shrink: 0; }
+        .info-item { background: #f8f9fa; padding: 12px; border-radius: 12px; text-align: center; }
+        .info-label { font-size: 0.75rem; color: var(--gray); display: block; margin-bottom: 4px; }
+        .info-val { font-size: 1.1rem; font-weight: 700; color: var(--text); }
         .highlight { color: var(--primary); }
         .warning { color: #e74c3c; }
 
-        .btn-group { display: flex; gap: 10px; }
-        button { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
+        /* 버튼 영역 (고정) */
+        .btn-group { display: flex; gap: 10px; flex-shrink: 0; margin-bottom: 10px; }
+        button { flex: 1; padding: 14px; border: none; border-radius: 12px; font-size: 0.95rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(0, 103, 188, 0.2); }
         .btn-primary:active { transform: scale(0.98); background: #005091; }
         .btn-secondary { background: #f1f3f5; color: #495057; }
         .btn-secondary:active { transform: scale(0.98); background: #e9ecef; }
 
-        .detail-list { margin-top: 20px; display: none; border-top: 1px solid #eee; padding-top: 20px; animation: slideDown 0.3s ease-out; }
-        
-        /* 리스트 스타일 수정: 한 줄 보기 최적화 */
-        .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
-        
+        /* 3. 리스트 영역 (여기만 스크롤 됨!) */
+        .detail-wrapper { 
+            flex-grow: 1; /* 남은 공간 모두 차지 */
+            overflow-y: auto; /* 내부 스크롤 허용 */
+            -webkit-overflow-scrolling: touch; /* 부드러운 스크롤 */
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
+            display: none; /* 초기엔 숨김 */
+            /* 스크롤바 숨기기 */
+            scrollbar-width: none; 
+        }
+        .detail-wrapper::-webkit-scrollbar { display: none; }
+
+        .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f8f8f8; }
         .detail-info { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .detail-date { font-size: 0.95rem; font-weight: bold; color: #333; }
-        .detail-time { font-size: 0.9rem; color: #888; margin-top: 1px; } /* 날짜와 높이 미세조정 */
+        .detail-date { font-size: 0.9rem; font-weight: bold; color: #333; }
+        .detail-time { font-size: 0.85rem; color: #999; margin-top: 1px; }
+        .detail-duration { background: #e7f5ff; color: var(--primary); padding: 5px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; min-width: 45px; text-align: center; white-space: nowrap; }
         
-        .detail-duration { background: #e7f5ff; color: var(--primary); padding: 5px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; min-width: 50px; text-align: center; white-space: nowrap; }
-        
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .loading-text { font-size: 0.8rem; color: var(--gray); margin-top: 10px; text-align: center; min-height: 20px;}
+        
+        /* 애니메이션 */
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🚗 주차 현황 대시보드</h1>
-    <p class="date-info" id="dateDisplay">데이터 조회 중...</p>
+    <header>
+        <h1>🚗 주차 현황 대시보드</h1>
+        <p class="date-info" id="dateDisplay">데이터 조회 중...</p>
+    </header>
 
     <div class="card">
         <h2>이번 달 사용 시간</h2>
@@ -85,7 +125,9 @@
     </div>
     <div id="statusMsg" class="loading-text"></div>
 
-    <div class="detail-list" id="detailList"></div>
+    <div class="detail-wrapper" id="detailWrapper">
+        <div id="detailList"></div>
+    </div>
 </div>
 
 <script>
@@ -111,6 +153,7 @@
         const yyyymm = getYYYYMM();
         const apiUrl = `http://220.73.4.2:8080/api/kbs/ess/search?date=${yyyymm}&empNo=${CONFIG.empNo}&_=${Date.now()}`;
         
+        // 안정적인 프록시
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
 
         try {
@@ -162,15 +205,11 @@
         return `${hours}:${minutes}`;
     }
 
-    // 날짜 포맷팅 (요일 추가)
     function formatDateWithDay(dateObj) {
         const month = String(dateObj.getMonth() + 1).padStart(2, '0');
         const day = String(dateObj.getDate()).padStart(2, '0');
-        
-        // 요일 배열 (0: 일요일 ~ 6: 토요일)
         const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
         const dayName = dayNames[dateObj.getDay()];
-
         return `${month}-${day} (${dayName})`;
     }
 
@@ -179,26 +218,21 @@
         listContainer.innerHTML = ""; 
 
         if (detailData.length === 0) {
-            listContainer.innerHTML = "<p style='text-align:center; color:#999;'>이번 달 주차 기록이 없습니다.</p>";
+            listContainer.innerHTML = "<p style='text-align:center; color:#999; margin-top:20px;'>기록 없음</p>";
             return;
         }
 
-        detailData.sort((a, b) => {
-            return new Date(b.inGateDateTime) - new Date(a.inGateDateTime);
-        });
+        detailData.sort((a, b) => new Date(b.inGateDateTime) - new Date(a.inGateDateTime));
 
         detailData.forEach(item => {
             const inDate = new Date(item.inGateDateTime);
             const outDate = item.outGateDateTime ? new Date(item.outGateDateTime) : null;
-
-            // 요일이 포함된 날짜 (예: 12-03 (화))
             const dateStr = formatDateWithDay(inDate); 
             const inTimeStr = formatTime(inDate); 
             const outTimeStr = outDate ? formatTime(outDate) : "주차중";
 
-            // 디자인: 한 줄 보기 (날짜 + 시간)
             const row = `
-                <div class="detail-item">
+                <div class="detail-item fade-in">
                     <div class="detail-info">
                         <span class="detail-date">${dateStr}</span>
                         <span class="detail-time">${inTimeStr} ~ ${outTimeStr}</span>
@@ -211,14 +245,15 @@
     }
 
     function toggleDetails() {
-        const list = document.getElementById('detailList');
+        const wrapper = document.getElementById('detailWrapper');
         const btn = document.getElementById('detailBtn');
-        if (list.style.display === 'block') {
-            list.style.display = 'none';
+        
+        if (wrapper.style.display === 'block') {
+            wrapper.style.display = 'none';
             btn.innerText = "📜 자세히 보기";
             btn.classList.replace('btn-primary', 'btn-secondary');
         } else {
-            list.style.display = 'block';
+            wrapper.style.display = 'block';
             btn.innerText = "🔼 접기";
             btn.classList.replace('btn-secondary', 'btn-primary');
         }
