@@ -13,19 +13,18 @@
         h1 { text-align: center; color: var(--text); margin: 0 0 5px 0; font-size: 1.4rem; font-weight: 800; }
         p.date-info { text-align: center; color: var(--gray); font-size: 0.9rem; margin-bottom: 2rem; }
 
-        /* 메인 카드 스타일 */
         .card { text-align: center; margin-bottom: 25px; }
         .card h2 { margin: 0; font-size: 0.95rem; color: var(--gray); font-weight: 500; }
-        .card .value { font-size: 3.5rem; font-weight: 800; color: var(--text); margin: 5px 0; letter-spacing: -1px; }
-        .card .unit { font-size: 1.2rem; font-weight: 600; color: var(--gray); margin-left: -5px; }
         
-        /* 프로그래스 바 */
+        /* 2. 수정: 숫자와 '분' 사이 간격 추가 및 폰트 조정 */
+        .card .value { font-size: 3.5rem; font-weight: 800; color: var(--text); margin: 5px 0; letter-spacing: -1px; display: flex; justify-content: center; align-items: baseline; gap: 8px; }
+        .card .unit { font-size: 1.2rem; font-weight: 600; color: var(--gray); transform: translateY(-5px); }
+        
         .progress-container { position: relative; margin-top: 15px; }
         .progress-bar { height: 12px; background: #eee; border-radius: 6px; overflow: hidden; }
         .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
         .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--gray); margin-top: 5px; }
 
-        /* 정보 그리드 */
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .info-item { background: #f8f9fa; padding: 15px; border-radius: 12px; text-align: center; }
         .info-label { font-size: 0.8rem; color: var(--gray); display: block; margin-bottom: 5px; }
@@ -33,7 +32,6 @@
         .highlight { color: var(--primary); }
         .warning { color: #e74c3c; }
 
-        /* 버튼 */
         .btn-group { display: flex; gap: 10px; }
         button { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
         
@@ -43,7 +41,6 @@
         .btn-secondary { background: #f1f3f5; color: #495057; }
         .btn-secondary:active { transform: scale(0.98); background: #e9ecef; }
 
-        /* 상세 리스트 (숨김 상태) */
         .detail-list { margin-top: 20px; display: none; border-top: 1px solid #eee; padding-top: 20px; animation: slideDown 0.3s ease-out; }
         .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
         .detail-date { font-size: 0.85rem; color: var(--gray); margin-bottom: 2px; }
@@ -107,14 +104,13 @@
         dailyMax: 540       
     };
 
-    let detailData = []; // 상세 데이터를 저장할 변수
+    let detailData = [];
 
     function getYYYYMM() {
         const d = new Date();
         return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0');
     }
 
-    // 초기 실행
     const now = new Date();
     document.getElementById('dateDisplay').innerText = `${now.getFullYear()}년 ${now.getMonth() + 1}월 조회 기준`;
     fetchData();
@@ -125,38 +121,82 @@
         
         btn.disabled = true;
         btn.innerText = "...";
-        status.innerText = "서버에서 데이터를 가져오고 있습니다...";
+        status.innerText = "빠른 서버로 데이터를 가져오는 중...";
 
         const yyyymm = getYYYYMM();
         const apiUrl = `http://220.73.4.2:8080/api/kbs/ess/search?date=${yyyymm}&empNo=${CONFIG.empNo}&_=${Date.now()}`;
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+        
+        // 1. 수정: 더 빠르고 안정적인 corsproxy.io 사용
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
 
         try {
             const response = await fetch(proxyUrl);
             const data = await response.json();
 
-            if (!data.contents) throw new Error("응답 없음");
+            // 데이터 구조가 바로 JSON일수도, 문자열일수도 있어서 체크
+            // (보통 이 Proxy는 바로 JSON을 줍니다)
+            const realData = (typeof data === 'string') ? JSON.parse(data) : data;
 
-            const realData = JSON.parse(data.contents);
+            // 내용물이 없는 경우 체크
+            if (!realData.summary && !realData.detail) {
+                 // corsproxy가 가끔 원본 텍스트를 그대로 줄 때가 있음 (API 응답이 string인 경우)
+                 // 만약 data.contents가 있다면 (AllOrigins 방식)
+                 if(data.contents) throw new Error("포맷 다름");
+            }
             
-            // 1. 요약 데이터 처리 (Summary)
+            // 1. 요약 데이터 처리
             let usedMinutes = 0;
             if (realData.summary && realData.summary.length > 0) {
                 const rawTime = String(realData.summary[0].applyTime); 
                 usedMinutes = parseInt(rawTime.replace(/,/g, '')) || 0;
             }
 
-            // 2. 상세 데이터 저장 (Detail)
+            // 2. 상세 데이터 저장
             detailData = realData.detail || [];
 
             updateUI(usedMinutes);
-            renderDetails(); // 상세 리스트 생성
+            renderDetails(); 
             
             status.innerText = "";
 
         } catch (error) {
             console.error(error);
-            status.innerText = "데이터 조회 실패 (잠시 후 다시 시도해주세요)";
+            // 실패 시 예비용 AllOrigins 시도 (백업)
+            status.innerText = "1차 접속 실패, 예비 서버 시도 중...";
+            fetchDataBackup(yyyymm);
+            return; // 여기서 종료하고 백업 함수에 맡김
+        } finally {
+            if(status.innerText === "") {
+                btn.disabled = false;
+                btn.innerText = "🔄 새로고침";
+            }
+        }
+    }
+
+    // 백업용 (기존 방식)
+    async function fetchDataBackup(yyyymm) {
+        const btn = document.getElementById('refreshBtn');
+        const status = document.getElementById('statusMsg');
+        const apiUrl = `http://220.73.4.2:8080/api/kbs/ess/search?date=${yyyymm}&empNo=${CONFIG.empNo}&_=${Date.now()}`;
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+
+        try {
+            const response = await fetch(proxyUrl);
+            const data = await response.json();
+            if (!data.contents) throw new Error("응답 없음");
+            const realData = JSON.parse(data.contents);
+
+            let usedMinutes = 0;
+            if (realData.summary && realData.summary.length > 0) {
+                const rawTime = String(realData.summary[0].applyTime); 
+                usedMinutes = parseInt(rawTime.replace(/,/g, '')) || 0;
+            }
+            detailData = realData.detail || [];
+            updateUI(usedMinutes);
+            renderDetails();
+            status.innerText = "";
+        } catch (e) {
+            status.innerText = "데이터 조회 실패. 잠시 후 다시 시도해주세요.";
             status.style.color = "#e74c3c";
         } finally {
             btn.disabled = false;
@@ -169,43 +209,64 @@
         const days = (remain / CONFIG.dailyMax).toFixed(1);
         const percent = Math.min(100, (used / CONFIG.maxMinutes) * 100).toFixed(1);
 
-        // 메인: 사용 시간 표시
         document.getElementById('usedTimeMain').innerHTML = `${used}<span class="unit">분</span>`;
         
-        // 서브: 남은 시간 표시
         const remainEl = document.getElementById('remainTime');
         remainEl.innerText = `${remain}분`;
         remainEl.className = remain < 0 ? "info-val warning" : "info-val highlight";
 
-        // 서브: 남은 일수
         document.getElementById('remainDays').innerText = `${days}일`;
         
-        // 프로그래스 바
         const bar = document.getElementById('progressBar');
         bar.style.width = `${percent}%`;
         bar.style.backgroundColor = remain < 0 ? "#e74c3c" : "#0067bc";
     }
 
+    // 3. 수정: 데이터 필드가 비어있을 경우 원본 날짜로 조립하는 로직 추가
+    function formatTime(str) {
+        if (!str || str.length < 4) return "";
+        return str.substring(0, 2) + ":" + str.substring(2, 4);
+    }
+
     function renderDetails() {
         const listContainer = document.getElementById('detailList');
-        listContainer.innerHTML = ""; // 초기화
+        listContainer.innerHTML = ""; 
 
         if (detailData.length === 0) {
             listContainer.innerHTML = "<p style='text-align:center; color:#999;'>이번 달 주차 기록이 없습니다.</p>";
             return;
         }
 
-        // 최신순 정렬 (혹시 안되어있을까봐)
-        // detailData.sort((a, b) => b.inGateDateTimeFormat.localeCompare(a.inGateDateTimeFormat));
-
         detailData.forEach(item => {
-            // 날짜/시간 파싱 (예: 2025-12-09 09:00:00 가정)
-            const inTimeFull = item.inGateDateTimeFormat || "-";
-            const outTimeFull = item.outGateDateTimeFormat || "-";
-            
-            // 보기 좋게 날짜와 시간 분리
-            const dateStr = inTimeFull.split(' ')[0] || "";
-            const timeRange = `${inTimeFull.split(' ')[1]?.substring(0,5) || ""} ~ ${outTimeFull.split(' ')[1]?.substring(0,5) || "주차중"}`;
+            // 날짜/시간 파싱 로직 강화
+            let dateStr = "";
+            let timeRange = "";
+
+            // A. 포맷된 데이터가 있는 경우 (예: "2025-12-09 09:00:00")
+            if (item.inGateDateTimeFormat && item.inGateDateTimeFormat.length > 10) {
+                dateStr = item.inGateDateTimeFormat.split(' ')[0];
+                const inT = item.inGateDateTimeFormat.split(' ')[1]?.substring(0,5);
+                const outT = item.outGateDateTimeFormat ? item.outGateDateTimeFormat.split(' ')[1]?.substring(0,5) : "주차중";
+                timeRange = `${inT} ~ ${outT}`;
+            } 
+            // B. 포맷된 데이터가 없는 경우 (원본 필드 조합 시도)
+            else {
+                // 예: inGateDate="20251209", inGateTime="090000" 이라고 가정하고 처리
+                // 실제 필드명을 모르므로 가능한 후보군을 다 체크
+                const rawDate = item.inGateDate || item.date || item.inDate || ""; 
+                const rawInTime = item.inGateTime || item.inTime || "";
+                const rawOutTime = item.outGateTime || item.outTime || "";
+
+                if (rawDate.length >= 8) {
+                    dateStr = `${rawDate.substring(0,4)}-${rawDate.substring(4,6)}-${rawDate.substring(6,8)}`;
+                } else {
+                    dateStr = "날짜 정보 없음";
+                }
+
+                const inTDisplay = formatTime(rawInTime) || "??:??";
+                const outTDisplay = rawOutTime ? formatTime(rawOutTime) : "주차중";
+                timeRange = `${inTDisplay} ~ ${outTDisplay}`;
+            }
 
             const row = `
                 <div class="detail-item">
@@ -227,11 +288,11 @@
         if (list.style.display === 'block') {
             list.style.display = 'none';
             btn.innerText = "📜 자세히 보기";
-            btn.classList.replace('btn-primary', 'btn-secondary'); // 스타일 원복
+            btn.classList.replace('btn-primary', 'btn-secondary');
         } else {
             list.style.display = 'block';
             btn.innerText = "🔼 접기";
-            btn.classList.replace('btn-secondary', 'btn-primary'); // 활성화 느낌
+            btn.classList.replace('btn-secondary', 'btn-primary');
         }
     }
 </script>
