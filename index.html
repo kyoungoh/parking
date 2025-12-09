@@ -16,7 +16,6 @@
         .card { text-align: center; margin-bottom: 25px; }
         .card h2 { margin: 0; font-size: 0.95rem; color: var(--gray); font-weight: 500; }
         
-        /* 디자인 유지: 숫자와 단위 분리 */
         .card .value { font-size: 3.5rem; font-weight: 800; color: var(--text); margin: 5px 0; letter-spacing: -1px; display: flex; justify-content: center; align-items: baseline; gap: 8px; }
         .card .unit { font-size: 1.2rem; font-weight: 600; color: var(--gray); transform: translateY(-5px); }
         
@@ -34,17 +33,21 @@
 
         .btn-group { display: flex; gap: 10px; }
         button { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:active { transform: scale(0.98); background: #005091; }
         .btn-secondary { background: #f1f3f5; color: #495057; }
         .btn-secondary:active { transform: scale(0.98); background: #e9ecef; }
 
         .detail-list { margin-top: 20px; display: none; border-top: 1px solid #eee; padding-top: 20px; animation: slideDown 0.3s ease-out; }
+        
+        /* 리스트 스타일 수정: 한 줄 보기 최적화 */
         .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
-        .detail-date { font-size: 0.9rem; font-weight: bold; color: #555; margin-bottom: 3px; }
-        .detail-time { font-size: 0.9rem; color: #888; }
-        .detail-duration { background: #e7f5ff; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; min-width: 50px; text-align: center;}
+        
+        .detail-info { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .detail-date { font-size: 0.95rem; font-weight: bold; color: #333; }
+        .detail-time { font-size: 0.9rem; color: #888; margin-top: 1px; } /* 날짜와 높이 미세조정 */
+        
+        .detail-duration { background: #e7f5ff; color: var(--primary); padding: 5px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; min-width: 50px; text-align: center; white-space: nowrap; }
         
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .loading-text { font-size: 0.8rem; color: var(--gray); margin-top: 10px; text-align: center; min-height: 20px;}
@@ -108,7 +111,6 @@
         const yyyymm = getYYYYMM();
         const apiUrl = `http://220.73.4.2:8080/api/kbs/ess/search?date=${yyyymm}&empNo=${CONFIG.empNo}&_=${Date.now()}`;
         
-        // 안정적인 프록시 사용
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
 
         try {
@@ -154,18 +156,22 @@
         bar.style.backgroundColor = remain < 0 ? "#e74c3c" : "#0067bc";
     }
 
-    // 시간 포맷팅 함수 (ISO 문자열 -> 10:30 형태)
     function formatTime(dateObj) {
         const hours = String(dateObj.getHours()).padStart(2, '0');
         const minutes = String(dateObj.getMinutes()).padStart(2, '0');
         return `${hours}:${minutes}`;
     }
 
-    // 날짜 포맷팅 함수 (ISO 문자열 -> 12-09 형태)
-    function formatDate(dateObj) {
+    // 날짜 포맷팅 (요일 추가)
+    function formatDateWithDay(dateObj) {
         const month = String(dateObj.getMonth() + 1).padStart(2, '0');
         const day = String(dateObj.getDate()).padStart(2, '0');
-        return `${month}-${day}`;
+        
+        // 요일 배열 (0: 일요일 ~ 6: 토요일)
+        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+        const dayName = dayNames[dateObj.getDay()];
+
+        return `${month}-${day} (${dayName})`;
     }
 
     function renderDetails() {
@@ -177,25 +183,25 @@
             return;
         }
 
-        // 최신순 정렬 (입차 시간 기준 내림차순)
         detailData.sort((a, b) => {
             return new Date(b.inGateDateTime) - new Date(a.inGateDateTime);
         });
 
         detailData.forEach(item => {
-            // inGateDateTime, outGateDateTime 데이터가 확실히 존재함 (스크린샷 확인 완료)
             const inDate = new Date(item.inGateDateTime);
             const outDate = item.outGateDateTime ? new Date(item.outGateDateTime) : null;
 
-            const dateStr = formatDate(inDate); // 12-03
-            const inTimeStr = formatTime(inDate); // 09:17 (자동으로 한국시간 변환됨)
+            // 요일이 포함된 날짜 (예: 12-03 (화))
+            const dateStr = formatDateWithDay(inDate); 
+            const inTimeStr = formatTime(inDate); 
             const outTimeStr = outDate ? formatTime(outDate) : "주차중";
 
+            // 디자인: 한 줄 보기 (날짜 + 시간)
             const row = `
                 <div class="detail-item">
-                    <div>
-                        <div class="detail-date">${dateStr}</div>
-                        <div class="detail-time">${inTimeStr} ~ ${outTimeStr}</div>
+                    <div class="detail-info">
+                        <span class="detail-date">${dateStr}</span>
+                        <span class="detail-time">${inTimeStr} ~ ${outTimeStr}</span>
                     </div>
                     <div class="detail-duration">${item.applyTime}분</div>
                 </div>
