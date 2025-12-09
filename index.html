@@ -3,228 +3,320 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🚗주차 현황</title>
+    <title>🚗주차현황</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
-            /* Google Material Palette */
-            --primary: #1a73e8;       /* Google Blue */
-            --primary-bg: #e8f0fe;    /* Light Blue for backgrounds */
-            --bg: #f8f9fa;            /* App Background */
-            --surface: #ffffff;       /* Card Background */
-            --text-main: #202124;     /* Google Dark Gray */
-            --text-sub: #5f6368;      /* Google Medium Gray */
-            --error: #d93025;         /* Google Red */
-            --shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
-            --radius: 16px;
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            --accent: #f43f5e;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-sub: #6b7280;
+            --shadow-soft: 0 10px 40px -10px rgba(0,0,0,0.08);
+            --shadow-sharp: 0 1px 2px 0 rgba(0,0,0,0.05);
+            --radius-outer: 24px;
+            --radius-inner: 16px;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Google Sans", "Roboto", "Pretendard", sans-serif; 
-            background: var(--bg); 
-            margin: 0; 
+
+        body {
+            font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
             padding: 0;
-            height: 100dvh; 
-            overflow: hidden; 
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* 배경 스크롤 방지 */
             color: var(--text-main);
+        }
+
+        /* === App Container (PC/Mobile 공통) === */
+        .app-wrapper {
+            width: 100%;
+            height: 100%;
+            background: var(--card-bg);
             display: flex;
             flex-direction: column;
-        }
-
-        /* 상단 앱바 (App Bar) */
-        header {
-            padding: 20px 24px 10px 24px;
-            background: var(--bg);
-            flex-shrink: 0;
-        }
-        .app-title { font-size: 1.4rem; font-weight: 700; color: var(--text-main); margin: 0; }
-        .app-date { font-size: 0.9rem; color: var(--text-sub); margin-top: 4px; font-weight: 500;}
-
-        /* 메인 컨테이너 */
-        .container {
-            flex: 1;
-            padding: 10px 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            overflow: hidden; /* 내부 스크롤 제어 */
-        }
-
-        /* 카드 공통 스타일 */
-        .card {
-            background: var(--surface);
-            border-radius: var(--radius);
-            padding: 24px;
-            box-shadow: var(--shadow);
-            text-align: center;
-            flex-shrink: 0; /* 크기 고정 */
             position: relative;
             overflow: hidden;
         }
 
-        /* 메인: 사용 시간 */
-        .card h2 { margin: 0; font-size: 0.9rem; color: var(--text-sub); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;}
-        .big-value { 
-            font-size: 3.8rem; 
-            font-weight: 400; /* 구글 스타일은 너무 두껍지 않게 */
-            color: var(--primary); 
-            margin: 10px 0; 
-            letter-spacing: -2px; 
-            line-height: 1;
-            display: flex; justify-content: center; align-items: baseline;
-        }
-        .big-value span { font-size: 1.2rem; margin-left: 5px; font-weight: 500; color: var(--text-sub); letter-spacing: 0;}
+        /* === PC 대응 (반응형 미디어 쿼리) === */
+        @media (min-width: 768px) {
+            body {
+                /* PC 배경: 그라데이션 적용 */
+                background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%);
+            }
+            .app-wrapper {
+                width: 900px; /* 넓은 대시보드 형태 */
+                height: 600px; /* 고정 높이 */
+                border-radius: var(--radius-outer);
+                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+                flex-direction: row; /* 좌우 분할 */
+                overflow: hidden;
+            }
+            
+            /* 왼쪽 패널 (요약) */
+            .dashboard-left {
+                width: 40%;
+                background: #f8fafc;
+                padding: 40px;
+                border-right: 1px solid #e2e8f0;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
 
-        /* 프로그래스 바 (Pill Shape) */
-        .progress-track { background: #f1f3f4; height: 12px; border-radius: 10px; overflow: hidden; margin-top: 15px;}
-        .progress-fill { background: var(--primary); height: 100%; width: 0%; border-radius: 10px; transition: width 1s ease; }
-        .limit-info { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-sub); margin-top: 8px; font-weight: 500; }
-
-        /* 정보 그리드 (Chips Style) */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; flex-shrink: 0; }
-        .info-chip {
-            background: var(--surface);
-            padding: 16px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+            /* 오른쪽 패널 (리스트) */
+            .dashboard-right {
+                width: 60%;
+                padding: 0; /* 내부에서 처리 */
+                background: white;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            /* PC에서는 모바일용 헤더 숨김 */
+            .mobile-header { display: none; }
+            
+            /* PC용 리스트 헤더 표시 */
+            .pc-list-header {
+                display: flex !important;
+                padding: 30px 40px 20px 40px;
+                border-bottom: 1px solid #f1f5f9;
+            }
+            
+            .list-scroll-area {
+                padding: 0 40px 40px 40px;
+            }
+            
+            /* PC에서는 칩 그리드 레이아웃 변경 */
+            .info-grid {
+                grid-template-columns: 1fr !important; /* 세로로 쌓기 */
+            }
+            
+            /* FAB 버튼 PC 위치 조정 */
+            .fab {
+                position: absolute !important;
+                bottom: 30px !important;
+                right: 30px !important;
+            }
         }
-        .info-chip.blue-bg { background: var(--primary-bg); color: var(--primary); }
+
+        /* === Mobile Default Styles === */
+        @media (max-width: 767px) {
+            .app-wrapper {
+                border-radius: 0;
+            }
+            .dashboard-left {
+                padding: 24px;
+                flex-shrink: 0;
+            }
+            .dashboard-right {
+                flex-grow: 1;
+                background: white;
+                border-top-left-radius: 24px;
+                border-top-right-radius: 24px;
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.03);
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                z-index: 10;
+            }
+            .pc-list-header { display: none !important; }
+            .mobile-header { display: block; margin-bottom: 20px; }
+            
+            .list-scroll-area {
+                padding: 20px 24px 100px 24px; /* 하단 FAB 여백 확보 */
+            }
+        }
+
+        /* === Typography & Common Elements === */
+        h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; margin: 0; }
+        .subtitle { font-size: 0.9rem; color: var(--text-sub); margin-top: 4px; font-weight: 500; }
+
+        /* Main Stat Card */
+        .stat-card {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .stat-label { font-size: 0.85rem; font-weight: 600; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
         
-        .chip-label { font-size: 0.8rem; color: var(--text-sub); margin-bottom: 4px; font-weight: 500;}
-        .chip-value { font-size: 1.4rem; font-weight: 700; color: var(--text-main); }
-        .chip-value.blue { color: var(--primary); }
-        .chip-value.red { color: var(--error); }
-
-        /* 리스트 영역 (Bottom Sheet Style) */
-        .list-header { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 10px 5px; flex-shrink: 0;
+        .big-number {
+            font-size: 4.5rem;
+            font-weight: 800;
+            margin: 10px 0;
+            line-height: 1;
+            letter-spacing: -2px;
+            background: var(--text-main);
+            -webkit-background-clip: text;
+            /* color: transparent;  그라디언트 텍스트 옵션 */ 
+            color: var(--text-main);
+            display: flex; justify-content: center; align-items: baseline; gap: 4px;
         }
-        .list-title { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
-        .toggle-btn {
-            background: none; border: none; color: var(--primary); 
-            font-weight: 600; font-size: 0.9rem; padding: 5px 10px; cursor: pointer;
-        }
+        .big-number span { font-size: 1.5rem; font-weight: 600; color: var(--text-sub); letter-spacing: 0; transform: translateY(-8px);}
 
-        .list-wrapper {
+        /* Progress Bar */
+        .progress-wrapper { position: relative; height: 8px; background: #e2e8f0; border-radius: 4px; margin-top: 20px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--primary-gradient); width: 0%; border-radius: 4px; transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+        .limit-text { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-sub); margin-top: 8px; font-weight: 500; }
+
+        /* Info Grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .info-box {
+            background: white;
+            padding: 20px;
+            border-radius: var(--radius-inner);
+            border: 1px solid #edf2f7;
+            /* box-shadow: var(--shadow-sharp); */
+            transition: transform 0.2s;
+        }
+        @media (min-width: 768px) { .info-box { background: white; border: 1px solid #e2e8f0; } }
+
+        .info-title { font-size: 0.8rem; color: var(--text-sub); font-weight: 600; margin-bottom: 4px; }
+        .info-value { font-size: 1.4rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.5px; }
+        .highlight { color: var(--primary); }
+        .warning { color: var(--accent); }
+
+        /* List Area */
+        .list-header-title { font-size: 1.1rem; font-weight: 700; color: var(--text-main); }
+        
+        .list-scroll-area {
             flex-grow: 1;
-            background: var(--surface);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
-            padding: 0 20px;
-            display: none; /* 토글 */
         }
-        
-        /* 리스트 아이템 (Material List Item) */
-        .list-item {
-            padding: 16px 0;
-            border-bottom: 1px solid #f1f3f4;
+        /* 스크롤바 커스텀 */
+        .list-scroll-area::-webkit-scrollbar { width: 6px; }
+        .list-scroll-area::-webkit-scrollbar-track { background: transparent; }
+        .list-scroll-area::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
+
+        /* List Item */
+        .log-item {
+            padding: 18px 0;
+            border-bottom: 1px solid #f1f5f9;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            animation: slideUp 0.4s ease-out forwards;
+            opacity: 0;
+            transform: translateY(10px);
         }
-        .item-left { display: flex; flex-direction: column; gap: 4px; }
-        .item-date { font-size: 0.95rem; font-weight: 600; color: var(--text-main); }
-        .item-time { font-size: 0.85rem; color: var(--text-sub); }
-        .item-badge {
-            background: var(--primary-bg); color: var(--primary);
-            padding: 6px 12px; border-radius: 20px;
-            font-size: 0.85rem; font-weight: 700;
-        }
-
-        /* Floating Action Button (FAB) - 새로고침 */
-        .fab {
-            position: fixed;
-            bottom: 30px;
-            right: 24px;
-            width: 56px;
-            height: 56px;
-            border-radius: 16px; /* Material 3 style (둥근 사각형) */
-            background: var(--primary);
-            box-shadow: 0 4px 8px rgba(26,115,232, 0.4);
-            border: none;
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer;
-            z-index: 100;
-            transition: transform 0.2s;
-        }
-        .fab:active { transform: scale(0.9); }
-        /* SVG 아이콘 색상 */
-        .fab svg { fill: white; width: 24px; height: 24px; }
         
-        /* 로딩 텍스트 */
-        .status-toast {
-            position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%);
-            background: rgba(32,33,36, 0.9); color: white;
-            padding: 8px 16px; border-radius: 20px; font-size: 0.85rem;
-            opacity: 0; transition: opacity 0.3s; pointer-events: none;
+        .log-left { display: flex; flex-direction: column; gap: 4px; }
+        .log-date { font-size: 0.95rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 6px; }
+        .log-day { font-size: 0.8rem; font-weight: 500; color: #94a3b8; background: #f1f5f9; padding: 2px 6px; border-radius: 4px; }
+        .log-time { font-size: 0.85rem; color: var(--text-sub); font-feature-settings: "tnum"; }
+        
+        .log-badge {
+            font-size: 0.9rem; font-weight: 700; color: var(--primary);
+            background: #eff6ff; padding: 6px 14px; border-radius: 12px;
+            min-width: 60px; text-align: center;
         }
-        .show-toast { opacity: 1; }
 
-        /* 애니메이션 */
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* FAB Button */
+        .fab {
+            position: fixed; bottom: 24px; right: 24px;
+            width: 56px; height: 56px;
+            background: var(--text-main);
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            border: none;
+            cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 100;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .fab:hover { transform: scale(1.1); }
+        .fab:active { transform: scale(0.95); }
+        .fab svg { fill: white; width: 24px; height: 24px; transition: transform 0.5s; }
+        .fab.spinning svg { transform: rotate(360deg); }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(4px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 50;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s;
+        }
+        .loading-overlay.active { opacity: 1; pointer-events: all; }
+        .spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
 
     </style>
 </head>
 <body>
 
-    <header>
-        <h1 class="app-title">주차 현황</h1>
-        <p class="app-date" id="dateDisplay">12월 데이터 조회 중...</p>
-    </header>
-
-    <div class="container">
+    <div class="app-wrapper">
         
-        <div class="card">
-            <h2>이번 달 사용 시간</h2>
-            <div class="big-value" id="usedTimeMain">0<span>분</span></div>
+        <div class="dashboard-left">
+            <header class="mobile-header">
+                <h1>주차 현황</h1>
+                <p class="subtitle" id="dateDisplay">데이터 로딩 중...</p>
+            </header>
+
+            <div class="stat-card">
+                <div class="stat-label">Total Usage</div>
+                <div class="big-number" id="usedTimeMain">0<span>min</span></div>
+                
+                <div class="progress-wrapper">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <div class="limit-text">
+                    <span id="percentText">0%</span>
+                    <span>Limit 5,400</span>
+                </div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-box">
+                    <div class="info-title">남은 시간</div>
+                    <div class="info-value highlight" id="remainTime">-</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-title">종일권 가능</div>
+                    <div class="info-value" id="remainDays">-</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-right">
+            <div class="pc-list-header">
+                <span class="list-header-title">상세 기록</span>
+                <span class="subtitle" style="margin-left: auto;" id="pcDateDisplay">Loading...</span>
+            </div>
             
-            <div class="progress-track">
-                <div class="progress-fill" id="progressBar"></div>
+            <div style="height: 24px; display: flex; justify-content: center; align-items: center; padding-top: 10px;" class="mobile-only">
+                <div style="width: 40px; height: 4px; background: #e2e8f0; border-radius: 2px;"></div>
             </div>
-            <div class="limit-info">
-                <span>0분</span>
-                <span>한도 5,400분</span>
-            </div>
+
+            <div class="list-scroll-area" id="listContainer">
+                </div>
         </div>
 
-        <div class="grid">
-            <div class="info-chip blue-bg">
-                <span class="chip-label">남은 시간</span>
-                <span class="chip-value blue" id="remainTime">-</span>
-            </div>
-            <div class="info-chip">
-                <span class="chip-label">9시간권 가능</span>
-                <span class="chip-value" id="remainDays">-</span>
-            </div>
-        </div>
-
-        <div class="list-header">
-            <span class="list-title">상세 기록</span>
-            <button class="toggle-btn" onclick="toggleDetails()" id="detailBtn">펼치기</button>
-        </div>
-
-        <div class="list-wrapper" id="detailListWrapper">
-            <div id="detailList"></div>
-            <div style="height: 100px;"></div> 
+        <button class="fab" onclick="fetchData()">
+            <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        </button>
+        
+        <div class="loading-overlay" id="loader">
+            <div class="spinner"></div>
         </div>
 
     </div>
-
-    <div id="statusMsg" class="status-toast"></div>
-
-    <button class="fab" onclick="fetchData()">
-        <svg viewBox="0 0 24 24">
-            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
-        </svg>
-    </button>
 
 <script>
     const CONFIG = { empNo: "31633", maxMinutes: 5400, dailyMax: 540 };
@@ -236,24 +328,19 @@
     }
 
     const now = new Date();
-    document.getElementById('dateDisplay').innerText = `${now.getMonth() + 1}월 데이터 조회 중...`;
+    const dateText = `${now.getMonth() + 1}월 현황`;
+    document.getElementById('dateDisplay').innerText = dateText;
+    document.getElementById('pcDateDisplay').innerText = `${now.getFullYear()}. ${now.getMonth() + 1}`;
+    
+    // 초기 로딩 실행
     fetchData();
 
-    // 토스트 메시지 함수
-    function showToast(msg) {
-        const el = document.getElementById('statusMsg');
-        el.innerText = msg;
-        el.classList.add('show-toast');
-        setTimeout(() => { el.classList.remove('show-toast'); }, 2000);
-    }
-
     async function fetchData() {
-        showToast("데이터 업데이트 중...");
-        
-        // 버튼 회전 애니메이션 효과
+        const loader = document.getElementById('loader');
         const fab = document.querySelector('.fab');
-        fab.style.transform = "rotate(360deg)";
-        setTimeout(() => { fab.style.transform = "rotate(0deg)"; }, 500);
+        
+        loader.classList.add('active');
+        fab.classList.add('spinning');
 
         const yyyymm = getYYYYMM();
         const apiUrl = `http://220.73.4.2:8080/api/kbs/ess/search?date=${yyyymm}&empNo=${CONFIG.empNo}&_=${Date.now()}`;
@@ -262,7 +349,7 @@
         try {
             const response = await fetch(proxyUrl);
             const data = await response.json();
-            if (!data.contents) throw new Error("응답 없음");
+            if (!data.contents) throw new Error("No Data");
             
             const realData = JSON.parse(data.contents);
             
@@ -274,14 +361,16 @@
 
             detailData = realData.detail || [];
             updateUI(usedMinutes);
-            renderDetails(); 
+            renderList();
             
-            document.getElementById('dateDisplay').innerText = `${now.getFullYear()}년 ${now.getMonth() + 1}월 현재`;
-            showToast("업데이트 완료");
-
         } catch (error) {
             console.error(error);
-            showToast("데이터 조회 실패");
+            // 에러 시 조용한 실패 (기존 데이터 유지) 혹은 알림
+        } finally {
+            setTimeout(() => {
+                loader.classList.remove('active');
+                fab.classList.remove('spinning');
+            }, 500);
         }
     }
 
@@ -290,29 +379,42 @@
         const days = (remain / CONFIG.dailyMax).toFixed(1);
         const percent = Math.min(100, (used / CONFIG.maxMinutes) * 100).toFixed(1);
 
-        // 숫자 애니메이션 (0부터 올라가는 효과)
+        // 숫자 애니메이션 적용
         animateValue("usedTimeMain", used);
 
         const remainEl = document.getElementById('remainTime');
-        remainEl.innerText = `${remain}분`;
-        remainEl.className = remain < 0 ? "chip-value red" : "chip-value blue";
-        document.getElementById('remainDays').innerText = `${days}일`;
+        remainEl.innerText = `${remain}`; // '분' 단위 제거 (디자인 깔끔하게)
+        remainEl.className = remain < 0 ? "info-value warning" : "info-value highlight";
         
-        const bar = document.getElementById('progressBar');
-        bar.style.width = `${percent}%`;
-        bar.style.backgroundColor = remain < 0 ? "#d93025" : "#1a73e8";
+        document.getElementById('remainDays').innerText = `${days}`;
+        
+        document.getElementById('progressBar').style.width = `${percent}%`;
+        document.getElementById('percentText').innerText = `${Math.round(percent)}%`;
+        
+        // 초과 시 색상 변경
+        if(remain < 0) {
+            document.getElementById('progressBar').style.background = "#f43f5e";
+        } else {
+            document.getElementById('progressBar').style.background = "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)";
+        }
     }
 
-    // 숫자 카운트업 효과
     function animateValue(id, end) {
         const obj = document.getElementById(id);
-        const start = 0;
+        const current = parseInt(obj.innerText) || 0;
+        if(current === end) return;
+
         const duration = 800;
         let startTimestamp = null;
         const step = (timestamp) => {
             if (!startTimestamp) startTimestamp = timestamp;
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-            obj.innerHTML = `${Math.floor(progress * (end - start) + start)}<span>분</span>`;
+            // Easing function for smooth stop
+            const ease = 1 - Math.pow(1 - progress, 3); 
+            
+            const val = Math.floor(ease * (end - current) + current);
+            obj.innerHTML = `${val}<span>min</span>`;
+            
             if (progress < 1) {
                 window.requestAnimationFrame(step);
             }
@@ -326,56 +428,53 @@
         return `${hours}:${minutes}`;
     }
 
-    function formatDateWithDay(dateObj) {
-        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const day = String(dateObj.getDate()).padStart(2, '0');
-        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
-        const dayName = dayNames[dateObj.getDay()];
-        return `${month}.${day}(${dayName})`;
+    function getDayName(dateObj) {
+        const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+        return dayNames[dateObj.getDay()];
+    }
+    
+    function formatDate(dateObj) {
+        return `${String(dateObj.getMonth() + 1).padStart(2, '0')}.${String(dateObj.getDate()).padStart(2, '0')}`;
     }
 
-    function renderDetails() {
-        const listContainer = document.getElementById('detailList');
-        listContainer.innerHTML = ""; 
+    function renderList() {
+        const container = document.getElementById('listContainer');
+        container.innerHTML = ""; 
 
         if (detailData.length === 0) {
-            listContainer.innerHTML = "<p style='text-align:center; color:#999; margin-top:30px;'>기록 없음</p>";
+            container.innerHTML = `
+                <div style="text-align:center; padding: 40px; color:#94a3b8;">
+                    <p>이번 달 기록이 없습니다.</p>
+                </div>`;
             return;
         }
 
+        // 최신순 정렬
         detailData.sort((a, b) => new Date(b.inGateDateTime) - new Date(a.inGateDateTime));
 
-        detailData.forEach(item => {
+        detailData.forEach((item, index) => {
             const inDate = new Date(item.inGateDateTime);
             const outDate = item.outGateDateTime ? new Date(item.outGateDateTime) : null;
-            const dateStr = formatDateWithDay(inDate); 
+            
+            const dateStr = formatDate(inDate);
+            const dayStr = getDayName(inDate);
             const inTimeStr = formatTime(inDate); 
-            const outTimeStr = outDate ? formatTime(outDate) : "주차중";
+            const outTimeStr = outDate ? formatTime(outDate) : "Parking...";
 
+            // 딜레이 애니메이션을 위해 index 사용
             const row = `
-                <div class="list-item fade-in">
-                    <div class="item-left">
-                        <span class="item-date">${dateStr}</span>
-                        <span class="item-time">${inTimeStr} ~ ${outTimeStr}</span>
+                <div class="log-item" style="animation-delay: ${index * 0.05}s">
+                    <div class="log-left">
+                        <div class="log-date">
+                            ${dateStr} <span class="log-day">${dayStr}</span>
+                        </div>
+                        <div class="log-time">${inTimeStr} ~ ${outTimeStr}</div>
                     </div>
-                    <div class="item-badge">${item.applyTime}분</div>
+                    <div class="log-badge">${item.applyTime}m</div>
                 </div>
             `;
-            listContainer.innerHTML += row;
+            container.innerHTML += row;
         });
-    }
-
-    function toggleDetails() {
-        const wrapper = document.getElementById('detailListWrapper');
-        const btn = document.getElementById('detailBtn');
-        
-        if (wrapper.style.display === 'block') {
-            wrapper.style.display = 'none';
-            btn.innerText = "펼치기";
-        } else {
-            wrapper.style.display = 'block';
-            btn.innerText = "접기";
-        }
     }
 </script>
 
