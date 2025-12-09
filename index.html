@@ -3,178 +3,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KBS 주차 현황 대시보드</title>
+    <title>주차 현황 대시보드</title>
     <style>
-        :root { --primary: #0067bc; --bg: #f4f4f9; } /* KBS 블루 컬러 적용 */
-        body { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 420px; }
-        h1 { text-align: center; color: #333; margin-bottom: 0.5rem; font-size: 1.6rem; font-weight: 800; }
-        .subtitle { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
+        :root { --primary: #0067bc; --bg: #f4f4f9; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", Roboto, sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+        .container { background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
         
-        .card { background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 15px; margin-bottom: 15px; }
-        .form-group { margin-bottom: 10px; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; color: #444; font-size: 0.9rem; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 1rem; transition: 0.2s; }
-        input:focus { border-color: var(--primary); outline: none; }
-        
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; margin-top: 5px; }
-        .btn-primary { background-color: var(--primary); color: white; box-shadow: 0 2px 4px rgba(0,103,188,0.3); }
-        .btn-primary:hover { background-color: #005091; transform: translateY(-1px); }
-        .btn-primary:active { transform: translateY(0); }
-        
-        .status-msg { text-align: center; margin-top: 10px; font-size: 0.9rem; min-height: 20px; }
-        .status-loading { color: #e67e22; }
-        .status-error { color: #e74c3c; }
-        .status-success { color: #27ae60; }
+        h1 { text-align: center; color: #333; margin: 0 0 5px 0; font-size: 1.5rem; }
+        p.date-info { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
 
-        .result-box { margin-top: 20px; border-top: 2px dashed #eee; padding-top: 20px; display: none; }
-        .result-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .result-label { color: #555; }
-        .result-value { font-weight: 800; font-size: 1.1rem; color: #333; }
-        .highlight { color: var(--primary); font-size: 1.3rem; }
-        .warning { color: #e74c3c; }
+        .card { background: #f8f9fa; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 15px; border: 1px solid #eee; }
+        .card h2 { margin: 0; font-size: 0.9rem; color: #888; font-weight: 500; }
+        .card .value { font-size: 2.5rem; font-weight: 800; color: #333; margin: 10px 0; }
+        .card .unit { font-size: 1rem; font-weight: normal; color: #666; }
         
-        .info-text { font-size: 0.8rem; color: #888; text-align: center; margin-top: 20px; line-height: 1.4; }
+        .progress-bar { height: 10px; background: #e9ecef; border-radius: 5px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 1s ease; }
+
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .info-item { background: white; padding: 15px; border-radius: 8px; border: 1px solid #eee; text-align: center; }
+        .info-label { font-size: 0.8rem; color: #888; display: block; margin-bottom: 5px; }
+        .info-val { font-size: 1.2rem; font-weight: bold; color: #333; }
+        .highlight { color: var(--primary); }
+        .warning { color: #e74c3c; }
+
+        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.2s; }
+        button:active { transform: scale(0.98); }
+        button:disabled { background: #ccc; }
+
+        .loading { color: #888; font-size: 0.9rem; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🚗 주차 현황 대시보드</h1>
-    <p class="subtitle">사번과 날짜로 자동 조회</p>
+    <h1>🚗 내 주차 현황</h1>
+    <p class="date-info" id="dateDisplay">2025년 12월 조회 중...</p>
 
     <div class="card">
-        <div class="form-group">
-            <label for="empNo">사번 (Employee No)</label>
-            <input type="number" id="empNo" value="31633">
+        <h2>남은 주차 시간</h2>
+        <div class="value" id="remainTime">-</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
         </div>
-        <button class="btn btn-primary" onclick="fetchAndCalculate()" id="actionBtn">
-            데이터 가져오기 & 분석
-        </button>
-        <div id="statusMsg" class="status-msg"></div>
+        <p style="font-size: 0.8rem; color: #999; margin-top: 8px;">총 5400분 중 <span id="usedPercent">0</span>% 사용</p>
     </div>
 
-    <div class="result-box" id="resultBox">
-        <div class="result-row">
-            <span class="result-label">이번 달 사용 시간</span>
-            <span class="result-value" id="usedTime">0분</span>
+    <div class="info-grid">
+        <div class="info-item">
+            <span class="info-label">사용 시간</span>
+            <span class="info-val" id="usedTime">-</span>
         </div>
-        <div class="result-row">
-            <span class="result-label">남은 시간</span>
-            <span class="result-value highlight" id="remainTime">0분</span>
-        </div>
-        <div class="result-row">
-            <span class="result-label">풀타임(9h) 가능 횟수</span>
-            <span class="result-value" id="remainDays">0회</span>
+        <div class="info-item">
+            <span class="info-label">풀타임(9h) 가능</span>
+            <span class="info-val highlight" id="remainDays">-</span>
         </div>
     </div>
-    
-    <div class="info-text">
-        * 보안 정책상 중계 서버(AllOrigins)를 경유합니다.<br>
-        * 회사 내부망 설정에 따라 접속이 제한될 수 있습니다.
-    </div>
+
+    <button onclick="fetchData()" id="refreshBtn">새로고침</button>
+    <div id="statusMsg" class="loading"></div>
 </div>
 
 <script>
-    const MAX_MINUTES = 5400; // 월 최대 5400분
-    const DAILY_MAX = 540;    // 일 최대 540분
+    const CONFIG = {
+        empNo: "31633",     // 사번
+        maxMinutes: 5400,   // 월 한도
+        dailyMax: 540       // 일 한도
+    };
 
     function getYYYYMM() {
-        const date = new Date();
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        return `${year}${month}`;
+        const d = new Date();
+        return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0');
     }
 
-    async function fetchAndCalculate() {
-        const empNo = document.getElementById('empNo').value;
-        const dateParam = getYYYYMM();
-        const targetUrl = `http://220.73.4.2:8080/view/kbs/regular/ess?empNo=${empNo}&date=${dateParam}`;
-        
-        // 1. UI 상태 변경
-        const btn = document.getElementById('actionBtn');
+    // 초기 실행
+    document.getElementById('dateDisplay').innerText = `${new Date().getFullYear()}년 ${new Date().getMonth() + 1}월 현황`;
+    fetchData();
+
+    async function fetchData() {
+        const btn = document.getElementById('refreshBtn');
         const status = document.getElementById('statusMsg');
+        
         btn.disabled = true;
-        btn.innerText = "데이터 조회 중...";
-        status.innerText = "회사 서버에 접속을 시도하고 있습니다...";
-        status.className = "status-msg status-loading";
-        document.getElementById('resultBox').style.display = 'none';
+        btn.innerText = "조회 중...";
+        status.innerText = "";
+
+        const yyyymm = getYYYYMM();
+        // 질문자가 찾은 API 주소
+        const apiUrl = `http://220.73.4.2:8080/api/kbs/ess/search?date=${yyyymm}&empNo=${CONFIG.empNo}&_=${Date.now()}`;
+        
+        // 보안(HTTPS -> HTTP) 우회를 위한 프록시 사용
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
 
         try {
-            // 2. Proxy를 통해 데이터 요청 (보안 우회)
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
             const response = await fetch(proxyUrl);
             const data = await response.json();
 
-            if (!data.contents) throw new Error("데이터를 받아오지 못했습니다.");
+            if (!data.contents) throw new Error("응답 없음");
 
-            // 3. 데이터 파싱 (HTML에서 주차 시간 찾기)
-            // 주의: 실제 HTML 구조를 모르므로, '숫자 + 분' 패턴이나 특정 키워드 주변 숫자를 찾습니다.
-            // 만약 작동하지 않으면 아래 parsingLogic을 수정해야 합니다.
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(data.contents, "text/html");
+            // 프록시가 가져온 실제 데이터(JSON 문자열)를 객체로 변환
+            const realData = JSON.parse(data.contents);
             
-            // 시도 1: body 텍스트 전체에서 숫자 추출 (임시 로직)
-            // 정확도를 높이려면 회사 사이트 HTML의 특정 ID나 Class를 알아야 합니다.
-            // 현재는 페이지 내의 텍스트 중 "총 주차시간" 등의 키워드 옆에 있는 숫자를 찾는다고 가정하거나
-            // 단순히 페이지에 있는 큰 숫자를 찾아야 합니다.
-            
-            // **중요**: 현재는 사이트 구조를 모르니, 사용자에게 수동 입력을 요청하거나 
-            // 가져온 텍스트를 보여주는 방식으로 갈 수도 있습니다.
-            // 일단은 '가져오기 성공' 까지만 구현하고, 페이지 텍스트 전체에서 "분" 앞의 숫자를 찾아봅니다.
-            
-            const bodyText = doc.body.innerText || "";
-            // 예: "총 사용시간 : 1200분" 같은 패턴을 찾음
-            const match = bodyText.match(/([0-9,]+)\s*분/); 
-            
+            // 데이터 구조 확인: summary 배열의 첫 번째 요소에 applyTime이 있을 것으로 추정
             let usedMinutes = 0;
-            if (match) {
-                usedMinutes = parseInt(match[1].replace(/,/g, ''));
-                status.innerText = "데이터 업데이트 완료!";
-                status.className = "status-msg status-success";
-            } else {
-                // 숫자를 못 찾았을 경우
-                status.innerText = "사이트 접속은 성공했으나, 시간 정보를 찾지 못했습니다.";
-                status.className = "status-msg status-error";
-                // 디버깅을 위해 내용을 콘솔에 출력
-                console.log("Fetched HTML:", data.contents);
-                
-                // 임시: 0으로 설정하고 계산 로직만 보여줌
-                usedMinutes = 0; 
-                alert("자동 인식 실패: 페이지 구조가 예상과 다릅니다.\n(개발자 도구 Console에서 가져온 HTML을 확인할 수 있습니다)");
+            
+            if (realData.summary && realData.summary.length > 0) {
+                // 콤마가 들어간 문자열일 수 있으므로 제거 후 숫자로 변환
+                const rawTime = String(realData.summary[0].applyTime); 
+                usedMinutes = parseInt(rawTime.replace(/,/g, '')) || 0;
             }
 
-            // 4. 결과 계산 및 표시
-            calculate(usedMinutes);
+            updateUI(usedMinutes);
+            status.innerText = "업데이트 완료 ✅";
 
         } catch (error) {
             console.error(error);
-            status.innerText = "접속 실패: 회사 보안 정책으로 인해 차단되었거나 서버 오류입니다.";
-            status.className = "status-msg status-error";
+            status.innerText = "데이터를 가져오지 못했습니다. (서버 응답 없음)";
+            status.style.color = "red";
         } finally {
             btn.disabled = false;
-            btn.innerText = "데이터 가져오기 & 분석";
+            btn.innerText = "새로고침";
         }
     }
 
-    function calculate(used) {
-        const remain = MAX_MINUTES - used;
-        const daysLeft = (remain / DAILY_MAX).toFixed(1);
+    function updateUI(used) {
+        const remain = CONFIG.maxMinutes - used;
+        const days = (remain / CONFIG.dailyMax).toFixed(1);
+        const percent = Math.min(100, (used / CONFIG.maxMinutes) * 100).toFixed(1);
 
         document.getElementById('usedTime').innerText = `${used}분`;
-        document.getElementById('remainTime').innerText = `${remain}분`;
-        document.getElementById('remainDays').innerText = `${daysLeft}일`;
         
-        // 색상 처리
         const remainEl = document.getElementById('remainTime');
-        if(remain < 0) {
-            remainEl.className = "result-value warning";
-            remainEl.innerText = `${remain}분 (초과)`;
-        } else {
-            remainEl.className = "result-value highlight";
-        }
+        remainEl.innerText = `${remain}분`;
+        remainEl.style.color = remain < 0 ? "#e74c3c" : "#333";
 
-        document.getElementById('resultBox').style.display = 'block';
+        document.getElementById('remainDays').innerText = `${days}일`;
+        
+        // 퍼센트 바 업데이트
+        document.getElementById('progressBar').style.width = `${percent}%`;
+        document.getElementById('progressBar').style.backgroundColor = remain < 0 ? "#e74c3c" : "#0067bc";
+        document.getElementById('usedPercent').innerText = percent;
     }
 </script>
 
