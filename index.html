@@ -5,71 +5,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>주차 현황 대시보드</title>
     <style>
-        :root { --primary: #0067bc; --bg: #f4f4f9; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", Roboto, sans-serif; background: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
-        .container { background: white; padding: 2rem; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        :root { --primary: #0067bc; --bg: #f4f4f9; --text: #333; --gray: #888; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Pretendard", Roboto, sans-serif; background: var(--bg); display: flex; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
         
-        h1 { text-align: center; color: #333; margin: 0 0 5px 0; font-size: 1.5rem; }
-        p.date-info { text-align: center; color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
-
-        .card { background: #f8f9fa; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 15px; border: 1px solid #eee; }
-        .card h2 { margin: 0; font-size: 0.9rem; color: #888; font-weight: 500; }
-        .card .value { font-size: 2.5rem; font-weight: 800; color: #333; margin: 10px 0; }
-        .card .unit { font-size: 1rem; font-weight: normal; color: #666; }
+        .container { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); width: 100%; max-width: 420px; height: fit-content; align-self: center; }
         
-        .progress-bar { height: 10px; background: #e9ecef; border-radius: 5px; overflow: hidden; margin-top: 10px; }
-        .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 1s ease; }
+        h1 { text-align: center; color: var(--text); margin: 0 0 5px 0; font-size: 1.4rem; font-weight: 800; }
+        p.date-info { text-align: center; color: var(--gray); font-size: 0.9rem; margin-bottom: 2rem; }
 
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .info-item { background: white; padding: 15px; border-radius: 8px; border: 1px solid #eee; text-align: center; }
-        .info-label { font-size: 0.8rem; color: #888; display: block; margin-bottom: 5px; }
-        .info-val { font-size: 1.2rem; font-weight: bold; color: #333; }
+        /* 메인 카드 스타일 */
+        .card { text-align: center; margin-bottom: 25px; }
+        .card h2 { margin: 0; font-size: 0.95rem; color: var(--gray); font-weight: 500; }
+        .card .value { font-size: 3.5rem; font-weight: 800; color: var(--text); margin: 5px 0; letter-spacing: -1px; }
+        .card .unit { font-size: 1.2rem; font-weight: 600; color: var(--gray); margin-left: -5px; }
+        
+        /* 프로그래스 바 */
+        .progress-container { position: relative; margin-top: 15px; }
+        .progress-bar { height: 12px; background: #eee; border-radius: 6px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--primary); width: 0%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+        .progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--gray); margin-top: 5px; }
+
+        /* 정보 그리드 */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .info-item { background: #f8f9fa; padding: 15px; border-radius: 12px; text-align: center; }
+        .info-label { font-size: 0.8rem; color: var(--gray); display: block; margin-bottom: 5px; }
+        .info-val { font-size: 1.2rem; font-weight: 700; color: var(--text); }
         .highlight { color: var(--primary); }
         .warning { color: #e74c3c; }
 
-        button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 20px; transition: 0.2s; }
-        button:active { transform: scale(0.98); }
-        button:disabled { background: #ccc; }
+        /* 버튼 */
+        .btn-group { display: flex; gap: 10px; }
+        button { flex: 1; padding: 14px; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:active { transform: scale(0.98); background: #005091; }
+        
+        .btn-secondary { background: #f1f3f5; color: #495057; }
+        .btn-secondary:active { transform: scale(0.98); background: #e9ecef; }
 
-        .loading { color: #888; font-size: 0.9rem; margin-top: 10px; }
+        /* 상세 리스트 (숨김 상태) */
+        .detail-list { margin-top: 20px; display: none; border-top: 1px solid #eee; padding-top: 20px; animation: slideDown 0.3s ease-out; }
+        .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
+        .detail-date { font-size: 0.85rem; color: var(--gray); margin-bottom: 2px; }
+        .detail-time { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+        .detail-duration { background: #e7f5ff; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loading-text { font-size: 0.8rem; color: var(--gray); margin-top: 10px; text-align: center; min-height: 20px;}
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>🚗 내 주차 현황</h1>
-    <p class="date-info" id="dateDisplay">2025년 12월 조회 중...</p>
+    <h1>🚗 주차 현황 대시보드</h1>
+    <p class="date-info" id="dateDisplay">데이터 조회 중...</p>
 
     <div class="card">
-        <h2>남은 주차 시간</h2>
-        <div class="value" id="remainTime">-</div>
-        <div class="progress-bar">
-            <div class="progress-fill" id="progressBar"></div>
+        <h2>이번 달 사용 시간</h2>
+        <div class="value" id="usedTimeMain">0<span class="unit">분</span></div>
+        
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar"></div>
+            </div>
+            <div class="progress-label">
+                <span>0분</span>
+                <span>한도 5400분</span>
+            </div>
         </div>
-        <p style="font-size: 0.8rem; color: #999; margin-top: 8px;">총 5400분 중 <span id="usedPercent">0</span>% 사용</p>
     </div>
 
     <div class="info-grid">
         <div class="info-item">
-            <span class="info-label">사용 시간</span>
-            <span class="info-val" id="usedTime">-</span>
+            <span class="info-label">남은 시간</span>
+            <span class="info-val" id="remainTime">-</span>
         </div>
         <div class="info-item">
-            <span class="info-label">풀타임(9h) 가능</span>
+            <span class="info-label">9시간권 가능</span>
             <span class="info-val highlight" id="remainDays">-</span>
         </div>
     </div>
 
-    <button onclick="fetchData()" id="refreshBtn">새로고침</button>
-    <div id="statusMsg" class="loading"></div>
+    <div class="btn-group">
+        <button class="btn-secondary" onclick="toggleDetails()" id="detailBtn">📜 자세히 보기</button>
+        <button class="btn-primary" onclick="fetchData()" id="refreshBtn">🔄 새로고침</button>
+    </div>
+    <div id="statusMsg" class="loading-text"></div>
+
+    <div class="detail-list" id="detailList">
+        </div>
 </div>
 
 <script>
     const CONFIG = {
-        empNo: "31633",     // 사번
-        maxMinutes: 5400,   // 월 한도
-        dailyMax: 540       // 일 한도
+        empNo: "31633",     
+        maxMinutes: 5400,   
+        dailyMax: 540       
     };
+
+    let detailData = []; // 상세 데이터를 저장할 변수
 
     function getYYYYMM() {
         const d = new Date();
@@ -77,7 +115,8 @@
     }
 
     // 초기 실행
-    document.getElementById('dateDisplay').innerText = `${new Date().getFullYear()}년 ${new Date().getMonth() + 1}월 현황`;
+    const now = new Date();
+    document.getElementById('dateDisplay').innerText = `${now.getFullYear()}년 ${now.getMonth() + 1}월 조회 기준`;
     fetchData();
 
     async function fetchData() {
@@ -85,14 +124,11 @@
         const status = document.getElementById('statusMsg');
         
         btn.disabled = true;
-        btn.innerText = "조회 중...";
-        status.innerText = "";
+        btn.innerText = "...";
+        status.innerText = "서버에서 데이터를 가져오고 있습니다...";
 
         const yyyymm = getYYYYMM();
-        // 질문자가 찾은 API 주소
         const apiUrl = `http://220.73.4.2:8080/api/kbs/ess/search?date=${yyyymm}&empNo=${CONFIG.empNo}&_=${Date.now()}`;
-        
-        // 보안(HTTPS -> HTTP) 우회를 위한 프록시 사용
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
 
         try {
@@ -101,28 +137,30 @@
 
             if (!data.contents) throw new Error("응답 없음");
 
-            // 프록시가 가져온 실제 데이터(JSON 문자열)를 객체로 변환
             const realData = JSON.parse(data.contents);
             
-            // 데이터 구조 확인: summary 배열의 첫 번째 요소에 applyTime이 있을 것으로 추정
+            // 1. 요약 데이터 처리 (Summary)
             let usedMinutes = 0;
-            
             if (realData.summary && realData.summary.length > 0) {
-                // 콤마가 들어간 문자열일 수 있으므로 제거 후 숫자로 변환
                 const rawTime = String(realData.summary[0].applyTime); 
                 usedMinutes = parseInt(rawTime.replace(/,/g, '')) || 0;
             }
 
+            // 2. 상세 데이터 저장 (Detail)
+            detailData = realData.detail || [];
+
             updateUI(usedMinutes);
-            status.innerText = "업데이트 완료 ✅";
+            renderDetails(); // 상세 리스트 생성
+            
+            status.innerText = "";
 
         } catch (error) {
             console.error(error);
-            status.innerText = "데이터를 가져오지 못했습니다. (서버 응답 없음)";
-            status.style.color = "red";
+            status.innerText = "데이터 조회 실패 (잠시 후 다시 시도해주세요)";
+            status.style.color = "#e74c3c";
         } finally {
             btn.disabled = false;
-            btn.innerText = "새로고침";
+            btn.innerText = "🔄 새로고침";
         }
     }
 
@@ -131,18 +169,70 @@
         const days = (remain / CONFIG.dailyMax).toFixed(1);
         const percent = Math.min(100, (used / CONFIG.maxMinutes) * 100).toFixed(1);
 
-        document.getElementById('usedTime').innerText = `${used}분`;
+        // 메인: 사용 시간 표시
+        document.getElementById('usedTimeMain').innerHTML = `${used}<span class="unit">분</span>`;
         
+        // 서브: 남은 시간 표시
         const remainEl = document.getElementById('remainTime');
         remainEl.innerText = `${remain}분`;
-        remainEl.style.color = remain < 0 ? "#e74c3c" : "#333";
+        remainEl.className = remain < 0 ? "info-val warning" : "info-val highlight";
 
+        // 서브: 남은 일수
         document.getElementById('remainDays').innerText = `${days}일`;
         
-        // 퍼센트 바 업데이트
-        document.getElementById('progressBar').style.width = `${percent}%`;
-        document.getElementById('progressBar').style.backgroundColor = remain < 0 ? "#e74c3c" : "#0067bc";
-        document.getElementById('usedPercent').innerText = percent;
+        // 프로그래스 바
+        const bar = document.getElementById('progressBar');
+        bar.style.width = `${percent}%`;
+        bar.style.backgroundColor = remain < 0 ? "#e74c3c" : "#0067bc";
+    }
+
+    function renderDetails() {
+        const listContainer = document.getElementById('detailList');
+        listContainer.innerHTML = ""; // 초기화
+
+        if (detailData.length === 0) {
+            listContainer.innerHTML = "<p style='text-align:center; color:#999;'>이번 달 주차 기록이 없습니다.</p>";
+            return;
+        }
+
+        // 최신순 정렬 (혹시 안되어있을까봐)
+        // detailData.sort((a, b) => b.inGateDateTimeFormat.localeCompare(a.inGateDateTimeFormat));
+
+        detailData.forEach(item => {
+            // 날짜/시간 파싱 (예: 2025-12-09 09:00:00 가정)
+            const inTimeFull = item.inGateDateTimeFormat || "-";
+            const outTimeFull = item.outGateDateTimeFormat || "-";
+            
+            // 보기 좋게 날짜와 시간 분리
+            const dateStr = inTimeFull.split(' ')[0] || "";
+            const timeRange = `${inTimeFull.split(' ')[1]?.substring(0,5) || ""} ~ ${outTimeFull.split(' ')[1]?.substring(0,5) || "주차중"}`;
+
+            const row = `
+                <div class="detail-item">
+                    <div>
+                        <div class="detail-date">${dateStr}</div>
+                        <div class="detail-time">${timeRange}</div>
+                    </div>
+                    <div class="detail-duration">${item.applyTime}분</div>
+                </div>
+            `;
+            listContainer.innerHTML += row;
+        });
+    }
+
+    function toggleDetails() {
+        const list = document.getElementById('detailList');
+        const btn = document.getElementById('detailBtn');
+        
+        if (list.style.display === 'block') {
+            list.style.display = 'none';
+            btn.innerText = "📜 자세히 보기";
+            btn.classList.replace('btn-primary', 'btn-secondary'); // 스타일 원복
+        } else {
+            list.style.display = 'block';
+            btn.innerText = "🔼 접기";
+            btn.classList.replace('btn-secondary', 'btn-primary'); // 활성화 느낌
+        }
     }
 </script>
 
