@@ -16,7 +16,7 @@
         .card { text-align: center; margin-bottom: 25px; }
         .card h2 { margin: 0; font-size: 0.95rem; color: var(--gray); font-weight: 500; }
         
-        /* 숫자 디자인 개선 */
+        /* 디자인 유지: 숫자와 단위 분리 */
         .card .value { font-size: 3.5rem; font-weight: 800; color: var(--text); margin: 5px 0; letter-spacing: -1px; display: flex; justify-content: center; align-items: baseline; gap: 8px; }
         .card .unit { font-size: 1.2rem; font-weight: 600; color: var(--gray); transform: translateY(-5px); }
         
@@ -42,13 +42,10 @@
 
         .detail-list { margin-top: 20px; display: none; border-top: 1px solid #eee; padding-top: 20px; animation: slideDown 0.3s ease-out; }
         .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
-        .detail-date { font-size: 0.85rem; color: var(--gray); margin-bottom: 2px; }
-        .detail-time { font-size: 0.95rem; font-weight: 600; color: var(--text); }
-        .detail-duration { background: #e7f5ff; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; min-width: 50px; text-align: center;}
+        .detail-date { font-size: 0.9rem; font-weight: bold; color: #555; margin-bottom: 3px; }
+        .detail-time { font-size: 0.9rem; color: #888; }
+        .detail-duration { background: #e7f5ff; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; min-width: 50px; text-align: center;}
         
-        /* 디버그용 스타일 (데이터 구조 보여주기) */
-        .debug-info { font-size: 0.7rem; color: #d63384; background: #fff0f6; padding: 5px; border-radius: 4px; margin-top: 5px; word-break: break-all; text-align: left; }
-
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .loading-text { font-size: 0.8rem; color: var(--gray); margin-top: 10px; text-align: center; min-height: 20px;}
     </style>
@@ -106,12 +103,12 @@
         const status = document.getElementById('statusMsg');
         btn.disabled = true;
         btn.innerText = "...";
-        status.innerText = "데이터를 가져오는 중...";
+        status.innerText = "데이터 불러오는 중...";
 
         const yyyymm = getYYYYMM();
         const apiUrl = `http://220.73.4.2:8080/api/kbs/ess/search?date=${yyyymm}&empNo=${CONFIG.empNo}&_=${Date.now()}`;
         
-        // 1. AllOrigins (안정적)을 기본으로 사용
+        // 안정적인 프록시 사용
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
 
         try {
@@ -157,40 +154,18 @@
         bar.style.backgroundColor = remain < 0 ? "#e74c3c" : "#0067bc";
     }
 
-    function formatTime(str) {
-        if (!str) return "";
-        // 숫자만 남기고 처리
-        const cleanStr = String(str).replace(/[^0-9]/g, '');
-        if (cleanStr.length === 4) return cleanStr.substring(0, 2) + ":" + cleanStr.substring(2, 4);
-        if (cleanStr.length === 6) return cleanStr.substring(0, 2) + ":" + cleanStr.substring(2, 4);
-        return str;
+    // 시간 포맷팅 함수 (ISO 문자열 -> 10:30 형태)
+    function formatTime(dateObj) {
+        const hours = String(dateObj.getHours()).padStart(2, '0');
+        const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+        return `${hours}:${minutes}`;
     }
 
-    // 🕵️‍♂️ 데이터 자동 탐지 로직
-    function detectDateAndTime(item) {
-        let dateVal = "날짜 정보 없음";
-        let inTimeVal = "??:??";
-        let outTimeVal = "주차중";
-
-        // item의 모든 키와 값을 뒤져봅니다.
-        for (const [key, value] of Object.entries(item)) {
-            const valStr = String(value).replace(/[^0-9]/g, ''); // 숫자만 추출
-
-            // 1. 날짜 찾기 (2025로 시작하고 8자리인 숫자)
-            if (valStr.startsWith('2025') && valStr.length === 8) {
-                dateVal = `${valStr.substring(0,4)}-${valStr.substring(4,6)}-${valStr.substring(6,8)}`;
-            }
-            
-            // 2. 시간 찾기 (값의 길이가 6자리 혹은 4자리이고, key에 time, tm 등이 들어간 경우)
-            const keyLower = key.toLowerCase();
-            if ((keyLower.includes('in') || keyLower.includes('start')) && (keyLower.includes('time') || keyLower.includes('tm'))) {
-                 inTimeVal = formatTime(value);
-            }
-            if ((keyLower.includes('out') || keyLower.includes('end')) && (keyLower.includes('time') || keyLower.includes('tm'))) {
-                 outTimeVal = value ? formatTime(value) : "주차중";
-            }
-        }
-        return { dateVal, inTimeVal, outTimeVal };
+    // 날짜 포맷팅 함수 (ISO 문자열 -> 12-09 형태)
+    function formatDate(dateObj) {
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        return `${month}-${day}`;
     }
 
     function renderDetails() {
@@ -202,24 +177,25 @@
             return;
         }
 
+        // 최신순 정렬 (입차 시간 기준 내림차순)
+        detailData.sort((a, b) => {
+            return new Date(b.inGateDateTime) - new Date(a.inGateDateTime);
+        });
+
         detailData.forEach(item => {
-            // 자동 탐지 시도
-            let { dateVal, inTimeVal, outTimeVal } = detectDateAndTime(item);
-            
-            // 만약 탐지 실패 시, 디버깅 정보를 보여줌
-            let debugHtml = "";
-            if (dateVal === "날짜 정보 없음") {
-                // 화면에 원본 데이터를 json 형태로 뿌려줌 (사용자가 캡쳐해서 제보할 수 있게)
-                const safeJson = JSON.stringify(item).replace(/"/g, '').replace(/,/g, ', '); 
-                debugHtml = `<div class="debug-info">⚠️ 데이터 구조 확인용:<br>${safeJson}</div>`;
-            }
+            // inGateDateTime, outGateDateTime 데이터가 확실히 존재함 (스크린샷 확인 완료)
+            const inDate = new Date(item.inGateDateTime);
+            const outDate = item.outGateDateTime ? new Date(item.outGateDateTime) : null;
+
+            const dateStr = formatDate(inDate); // 12-03
+            const inTimeStr = formatTime(inDate); // 09:17 (자동으로 한국시간 변환됨)
+            const outTimeStr = outDate ? formatTime(outDate) : "주차중";
 
             const row = `
                 <div class="detail-item">
-                    <div style="width: 100%;">
-                        <div class="detail-date">${dateVal}</div>
-                        <div class="detail-time">${inTimeVal} ~ ${outTimeVal}</div>
-                        ${debugHtml}
+                    <div>
+                        <div class="detail-date">${dateStr}</div>
+                        <div class="detail-time">${inTimeStr} ~ ${outTimeStr}</div>
                     </div>
                     <div class="detail-duration">${item.applyTime}분</div>
                 </div>
