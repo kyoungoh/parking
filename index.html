@@ -16,7 +16,7 @@
         .card { text-align: center; margin-bottom: 25px; }
         .card h2 { margin: 0; font-size: 0.95rem; color: var(--gray); font-weight: 500; }
         
-        /* 2. 수정: 숫자와 '분' 사이 간격 추가 및 폰트 조정 */
+        /* 숫자 디자인 개선 */
         .card .value { font-size: 3.5rem; font-weight: 800; color: var(--text); margin: 5px 0; letter-spacing: -1px; display: flex; justify-content: center; align-items: baseline; gap: 8px; }
         .card .unit { font-size: 1.2rem; font-weight: 600; color: var(--gray); transform: translateY(-5px); }
         
@@ -37,7 +37,6 @@
         
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:active { transform: scale(0.98); background: #005091; }
-        
         .btn-secondary { background: #f1f3f5; color: #495057; }
         .btn-secondary:active { transform: scale(0.98); background: #e9ecef; }
 
@@ -45,13 +44,12 @@
         .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
         .detail-date { font-size: 0.85rem; color: var(--gray); margin-bottom: 2px; }
         .detail-time { font-size: 0.95rem; font-weight: 600; color: var(--text); }
-        .detail-duration { background: #e7f5ff; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; }
+        .detail-duration { background: #e7f5ff; color: var(--primary); padding: 4px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; min-width: 50px; text-align: center;}
+        
+        /* 디버그용 스타일 (데이터 구조 보여주기) */
+        .debug-info { font-size: 0.7rem; color: #d63384; background: #fff0f6; padding: 5px; border-radius: 4px; margin-top: 5px; word-break: break-all; text-align: left; }
 
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .loading-text { font-size: 0.8rem; color: var(--gray); margin-top: 10px; text-align: center; min-height: 20px;}
     </style>
 </head>
@@ -64,15 +62,9 @@
     <div class="card">
         <h2>이번 달 사용 시간</h2>
         <div class="value" id="usedTimeMain">0<span class="unit">분</span></div>
-        
         <div class="progress-container">
-            <div class="progress-bar">
-                <div class="progress-fill" id="progressBar"></div>
-            </div>
-            <div class="progress-label">
-                <span>0분</span>
-                <span>한도 5400분</span>
-            </div>
+            <div class="progress-bar"><div class="progress-fill" id="progressBar"></div></div>
+            <div class="progress-label"><span>0분</span><span>한도 5400분</span></div>
         </div>
     </div>
 
@@ -93,17 +85,11 @@
     </div>
     <div id="statusMsg" class="loading-text"></div>
 
-    <div class="detail-list" id="detailList">
-        </div>
+    <div class="detail-list" id="detailList"></div>
 </div>
 
 <script>
-    const CONFIG = {
-        empNo: "31633",     
-        maxMinutes: 5400,   
-        dailyMax: 540       
-    };
-
+    const CONFIG = { empNo: "31633", maxMinutes: 5400, dailyMax: 540 };
     let detailData = [];
 
     function getYYYYMM() {
@@ -118,84 +104,35 @@
     async function fetchData() {
         const btn = document.getElementById('refreshBtn');
         const status = document.getElementById('statusMsg');
-        
         btn.disabled = true;
         btn.innerText = "...";
-        status.innerText = "빠른 서버로 데이터를 가져오는 중...";
+        status.innerText = "데이터를 가져오는 중...";
 
         const yyyymm = getYYYYMM();
         const apiUrl = `http://220.73.4.2:8080/api/kbs/ess/search?date=${yyyymm}&empNo=${CONFIG.empNo}&_=${Date.now()}`;
         
-        // 1. 수정: 더 빠르고 안정적인 corsproxy.io 사용
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(apiUrl)}`;
-
-        try {
-            const response = await fetch(proxyUrl);
-            const data = await response.json();
-
-            // 데이터 구조가 바로 JSON일수도, 문자열일수도 있어서 체크
-            // (보통 이 Proxy는 바로 JSON을 줍니다)
-            const realData = (typeof data === 'string') ? JSON.parse(data) : data;
-
-            // 내용물이 없는 경우 체크
-            if (!realData.summary && !realData.detail) {
-                 // corsproxy가 가끔 원본 텍스트를 그대로 줄 때가 있음 (API 응답이 string인 경우)
-                 // 만약 data.contents가 있다면 (AllOrigins 방식)
-                 if(data.contents) throw new Error("포맷 다름");
-            }
-            
-            // 1. 요약 데이터 처리
-            let usedMinutes = 0;
-            if (realData.summary && realData.summary.length > 0) {
-                const rawTime = String(realData.summary[0].applyTime); 
-                usedMinutes = parseInt(rawTime.replace(/,/g, '')) || 0;
-            }
-
-            // 2. 상세 데이터 저장
-            detailData = realData.detail || [];
-
-            updateUI(usedMinutes);
-            renderDetails(); 
-            
-            status.innerText = "";
-
-        } catch (error) {
-            console.error(error);
-            // 실패 시 예비용 AllOrigins 시도 (백업)
-            status.innerText = "1차 접속 실패, 예비 서버 시도 중...";
-            fetchDataBackup(yyyymm);
-            return; // 여기서 종료하고 백업 함수에 맡김
-        } finally {
-            if(status.innerText === "") {
-                btn.disabled = false;
-                btn.innerText = "🔄 새로고침";
-            }
-        }
-    }
-
-    // 백업용 (기존 방식)
-    async function fetchDataBackup(yyyymm) {
-        const btn = document.getElementById('refreshBtn');
-        const status = document.getElementById('statusMsg');
-        const apiUrl = `http://220.73.4.2:8080/api/kbs/ess/search?date=${yyyymm}&empNo=${CONFIG.empNo}&_=${Date.now()}`;
+        // 1. AllOrigins (안정적)을 기본으로 사용
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
 
         try {
             const response = await fetch(proxyUrl);
             const data = await response.json();
             if (!data.contents) throw new Error("응답 없음");
+            
             const realData = JSON.parse(data.contents);
-
+            
             let usedMinutes = 0;
             if (realData.summary && realData.summary.length > 0) {
                 const rawTime = String(realData.summary[0].applyTime); 
                 usedMinutes = parseInt(rawTime.replace(/,/g, '')) || 0;
             }
+
             detailData = realData.detail || [];
             updateUI(usedMinutes);
-            renderDetails();
+            renderDetails(); 
             status.innerText = "";
-        } catch (e) {
+        } catch (error) {
+            console.error(error);
             status.innerText = "데이터 조회 실패. 잠시 후 다시 시도해주세요.";
             status.style.color = "#e74c3c";
         } finally {
@@ -210,11 +147,9 @@
         const percent = Math.min(100, (used / CONFIG.maxMinutes) * 100).toFixed(1);
 
         document.getElementById('usedTimeMain').innerHTML = `${used}<span class="unit">분</span>`;
-        
         const remainEl = document.getElementById('remainTime');
         remainEl.innerText = `${remain}분`;
         remainEl.className = remain < 0 ? "info-val warning" : "info-val highlight";
-
         document.getElementById('remainDays').innerText = `${days}일`;
         
         const bar = document.getElementById('progressBar');
@@ -222,10 +157,40 @@
         bar.style.backgroundColor = remain < 0 ? "#e74c3c" : "#0067bc";
     }
 
-    // 3. 수정: 데이터 필드가 비어있을 경우 원본 날짜로 조립하는 로직 추가
     function formatTime(str) {
-        if (!str || str.length < 4) return "";
-        return str.substring(0, 2) + ":" + str.substring(2, 4);
+        if (!str) return "";
+        // 숫자만 남기고 처리
+        const cleanStr = String(str).replace(/[^0-9]/g, '');
+        if (cleanStr.length === 4) return cleanStr.substring(0, 2) + ":" + cleanStr.substring(2, 4);
+        if (cleanStr.length === 6) return cleanStr.substring(0, 2) + ":" + cleanStr.substring(2, 4);
+        return str;
+    }
+
+    // 🕵️‍♂️ 데이터 자동 탐지 로직
+    function detectDateAndTime(item) {
+        let dateVal = "날짜 정보 없음";
+        let inTimeVal = "??:??";
+        let outTimeVal = "주차중";
+
+        // item의 모든 키와 값을 뒤져봅니다.
+        for (const [key, value] of Object.entries(item)) {
+            const valStr = String(value).replace(/[^0-9]/g, ''); // 숫자만 추출
+
+            // 1. 날짜 찾기 (2025로 시작하고 8자리인 숫자)
+            if (valStr.startsWith('2025') && valStr.length === 8) {
+                dateVal = `${valStr.substring(0,4)}-${valStr.substring(4,6)}-${valStr.substring(6,8)}`;
+            }
+            
+            // 2. 시간 찾기 (값의 길이가 6자리 혹은 4자리이고, key에 time, tm 등이 들어간 경우)
+            const keyLower = key.toLowerCase();
+            if ((keyLower.includes('in') || keyLower.includes('start')) && (keyLower.includes('time') || keyLower.includes('tm'))) {
+                 inTimeVal = formatTime(value);
+            }
+            if ((keyLower.includes('out') || keyLower.includes('end')) && (keyLower.includes('time') || keyLower.includes('tm'))) {
+                 outTimeVal = value ? formatTime(value) : "주차중";
+            }
+        }
+        return { dateVal, inTimeVal, outTimeVal };
     }
 
     function renderDetails() {
@@ -238,41 +203,23 @@
         }
 
         detailData.forEach(item => {
-            // 날짜/시간 파싱 로직 강화
-            let dateStr = "";
-            let timeRange = "";
-
-            // A. 포맷된 데이터가 있는 경우 (예: "2025-12-09 09:00:00")
-            if (item.inGateDateTimeFormat && item.inGateDateTimeFormat.length > 10) {
-                dateStr = item.inGateDateTimeFormat.split(' ')[0];
-                const inT = item.inGateDateTimeFormat.split(' ')[1]?.substring(0,5);
-                const outT = item.outGateDateTimeFormat ? item.outGateDateTimeFormat.split(' ')[1]?.substring(0,5) : "주차중";
-                timeRange = `${inT} ~ ${outT}`;
-            } 
-            // B. 포맷된 데이터가 없는 경우 (원본 필드 조합 시도)
-            else {
-                // 예: inGateDate="20251209", inGateTime="090000" 이라고 가정하고 처리
-                // 실제 필드명을 모르므로 가능한 후보군을 다 체크
-                const rawDate = item.inGateDate || item.date || item.inDate || ""; 
-                const rawInTime = item.inGateTime || item.inTime || "";
-                const rawOutTime = item.outGateTime || item.outTime || "";
-
-                if (rawDate.length >= 8) {
-                    dateStr = `${rawDate.substring(0,4)}-${rawDate.substring(4,6)}-${rawDate.substring(6,8)}`;
-                } else {
-                    dateStr = "날짜 정보 없음";
-                }
-
-                const inTDisplay = formatTime(rawInTime) || "??:??";
-                const outTDisplay = rawOutTime ? formatTime(rawOutTime) : "주차중";
-                timeRange = `${inTDisplay} ~ ${outTDisplay}`;
+            // 자동 탐지 시도
+            let { dateVal, inTimeVal, outTimeVal } = detectDateAndTime(item);
+            
+            // 만약 탐지 실패 시, 디버깅 정보를 보여줌
+            let debugHtml = "";
+            if (dateVal === "날짜 정보 없음") {
+                // 화면에 원본 데이터를 json 형태로 뿌려줌 (사용자가 캡쳐해서 제보할 수 있게)
+                const safeJson = JSON.stringify(item).replace(/"/g, '').replace(/,/g, ', '); 
+                debugHtml = `<div class="debug-info">⚠️ 데이터 구조 확인용:<br>${safeJson}</div>`;
             }
 
             const row = `
                 <div class="detail-item">
-                    <div>
-                        <div class="detail-date">${dateStr}</div>
-                        <div class="detail-time">${timeRange}</div>
+                    <div style="width: 100%;">
+                        <div class="detail-date">${dateVal}</div>
+                        <div class="detail-time">${inTimeVal} ~ ${outTimeVal}</div>
+                        ${debugHtml}
                     </div>
                     <div class="detail-duration">${item.applyTime}분</div>
                 </div>
@@ -284,7 +231,6 @@
     function toggleDetails() {
         const list = document.getElementById('detailList');
         const btn = document.getElementById('detailBtn');
-        
         if (list.style.display === 'block') {
             list.style.display = 'none';
             btn.innerText = "📜 자세히 보기";
