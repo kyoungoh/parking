@@ -49,41 +49,38 @@
         @media (min-width: 768px) {
             body { background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%); }
             .app-wrapper {
-                width: 960px; /* 너비 약간 증가 */
-                height: 640px; /* 높이 약간 증가 */
+                width: 960px;
+                height: 640px;
                 border-radius: var(--radius-outer);
                 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
                 flex-direction: row; overflow: hidden;
             }
             
-            /* 왼쪽 패널 스타일 재정의 */
             .dashboard-left {
                 width: 42%; 
                 background: #f8fafc; 
-                padding: 0; /* 패딩 제거하고 내부에서 flex로 제어 */
+                padding: 0;
                 border-right: 1px solid #e2e8f0;
                 display: flex; 
                 flex-direction: column;
             }
 
-            /* 상단 헤더 영역 (높이 고정) */
             .panel-header {
                 height: 80px;
                 padding: 0 40px;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                border-bottom: 1px solid transparent; /* 높이 맞춤용 */
+                border-bottom: 1px solid transparent;
                 flex-shrink: 0;
             }
 
-            /* 메인 컨텐츠 영역 (가운데 정렬 아님, 위에서부터 배치) */
             .panel-content {
                 padding: 40px;
                 display: flex;
                 flex-direction: column;
-                justify-content: flex-start; /* 위쪽 정렬 */
-                gap: 30px; /* 요소 간 간격 시원하게 벌림 */
+                justify-content: flex-start;
+                gap: 30px;
                 overflow-y: auto;
             }
 
@@ -93,7 +90,7 @@
             }
             
             .pc-list-header {
-                height: 80px; /* 왼쪽 헤더와 높이 일치 */
+                height: 80px;
                 padding: 0 40px;
                 display: flex !important; 
                 border-bottom: 1px solid #f1f5f9; 
@@ -121,16 +118,12 @@
                 z-index: 1;
             }
             
-            /* 모바일 헤더 */
             .panel-header {
                 display: flex; justify-content: space-between; align-items: center;
                 margin-bottom: 10px;
             }
             
-            /* PC용 래퍼 무력화 */
-            .panel-content {
-                display: contents; 
-            }
+            .panel-content { display: contents; }
 
             .dashboard-right {
                 flex-grow: 1; background: white;
@@ -155,24 +148,22 @@
         }
 
         /* === Typography & Components === */
-        
-        /* 타이틀 스타일 통일 */
         h1, .list-header-title { 
             font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; margin: 0; color: #111827; 
         }
         
         .month-badge {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             color: var(--primary);
             font-weight: 600;
             background: rgba(59, 130, 246, 0.1);
-            padding: 6px 14px;
+            padding: 8px 16px;
             border-radius: 20px;
+            letter-spacing: -0.5px;
         }
         
         .subtitle { font-size: 0.95rem; color: var(--text-sub); font-weight: 500; }
 
-        /* 메인 통계 영역 */
         .stat-group {
             display: flex; flex-direction: column; align-items: center;
             margin-bottom: 10px;
@@ -184,22 +175,24 @@
             margin-bottom: 0px;
         }
 
-        /* 폰트 더 얇고 크게 */
+        /* 2. 수정: 폰트 자간 및 간격 조정 */
         .big-number {
             font-size: 5rem;
             font-weight: 100; /* Thin Font */
             margin: 0;
             line-height: 1;
-            letter-spacing: -4px;
+            letter-spacing: -1px; /* 자간을 살짝 벌림 (기존 -4px) */
             color: var(--text-main);
-            display: flex; justify-content: center; align-items: baseline; gap: 6px;
+            display: flex; 
+            justify-content: center; 
+            align-items: baseline; 
+            gap: 12px; /* 숫자와 단위 사이 간격 확대 (기존 6px) */
         }
         .big-number span { 
             font-size: 1.5rem; font-weight: 400; color: var(--text-sub); 
             letter-spacing: 0; transform: translateY(-10px); 
         }
 
-        /* 요금 정보 캡슐 스타일 */
         .cost-capsule {
             display: inline-flex;
             align-items: center;
@@ -215,13 +208,11 @@
         .cost-val { font-weight: 700; color: var(--text-main); margin-left: 4px; }
         .cost-sep { margin: 0 10px; color: #cbd5e1; height: 12px; border-left: 1px solid #cbd5e1; }
 
-        /* Progress Area */
         .progress-section { width: 100%; margin-top: 10px; }
         .progress-wrapper { position: relative; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
         .progress-bar { height: 100%; background: var(--primary-gradient); width: 0%; border-radius: 4px; transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .limit-text { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-sub); margin-top: 8px; font-weight: 500; }
 
-        /* Info Grid */
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
         .info-box {
             background: white; padding: 20px; border-radius: var(--radius-inner);
@@ -289,7 +280,7 @@
             
             <div class="panel-header">
                 <h1>주차 현황</h1>
-                <div class="month-badge" id="dateDisplay">12월</div>
+                <div class="month-badge" id="dateDisplay">2025년 12월</div>
             </div>
 
             <div class="panel-content">
@@ -362,7 +353,8 @@
     }
 
     const now = new Date();
-    document.getElementById('dateDisplay').innerText = `${now.getMonth() + 1}월`;
+    // 1. 수정: 연도 포함하여 초기화
+    document.getElementById('dateDisplay').innerText = `${now.getFullYear()}년 ${now.getMonth() + 1}월`;
     document.getElementById('pcDateDisplay').innerText = `${now.getFullYear()}. ${now.getMonth() + 1}`;
     
     fetchData();
