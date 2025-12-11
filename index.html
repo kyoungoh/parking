@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🚗주차현황</title>
+    <title>주차 현황 대시보드</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
@@ -47,130 +47,80 @@
 
         /* === PC 대응 (768px 이상) === */
         @media (min-width: 768px) {
-            body {
-                background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%);
-            }
+            body { background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%); }
             .app-wrapper {
-                width: 900px;
-                height: 600px;
+                width: 900px; height: 600px;
                 border-radius: var(--radius-outer);
                 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-                flex-direction: row; 
-                overflow: hidden;
+                flex-direction: row; overflow: hidden;
             }
-            
             .dashboard-left {
-                width: 40%;
-                background: #f8fafc;
-                padding: 40px;
+                width: 40%; background: #f8fafc; padding: 40px;
                 border-right: 1px solid #e2e8f0;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
+                display: flex; flex-direction: column; justify-content: center;
             }
-
             .dashboard-right {
-                width: 60%;
-                padding: 0;
-                background: white;
-                display: flex;
-                flex-direction: column;
+                width: 60%; padding: 0; background: white;
+                display: flex; flex-direction: column;
             }
-            
-            .mobile-header-group { display: none; }
             .mobile-list-header { display: none !important; }
-            
             .pc-list-header {
-                display: flex !important;
-                padding: 30px 40px 20px 40px;
-                border-bottom: 1px solid #f1f5f9;
-                align-items: center;
+                display: flex !important; padding: 30px 40px 20px 40px;
+                border-bottom: 1px solid #f1f5f9; align-items: center;
             }
-            
-            .list-scroll-area {
-                padding: 0 40px 40px 40px;
-            }
-            
-            .info-grid {
-                grid-template-columns: 1fr !important; 
-            }
-            
-            .fab {
-                position: absolute !important;
-                bottom: 30px !important;
-                right: 30px !important;
-            }
+            .list-scroll-area { padding: 0 40px 40px 40px; }
+            .info-grid { grid-template-columns: 1fr !important; }
+            .fab { position: absolute !important; bottom: 30px !important; right: 30px !important; }
         }
 
         /* === Mobile Default Styles (767px 이하) === */
         @media (max-width: 767px) {
-            .app-wrapper {
-                border-radius: 0;
-                /* 모바일 배경: 상단 요약부와 리스트 구분을 위해 배경색 지정 */
-                background: #f1f5f9; 
-            }
+            .app-wrapper { border-radius: 0; background: #f1f5f9; }
             .dashboard-left {
-                padding: 24px 24px 30px 24px;
-                flex-shrink: 0;
-                /* 배경 그라데이션으로 상단 영역 강조 */
-                background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
-                z-index: 1;
+                padding: 30px 24px 30px 24px; flex-shrink: 0;
+                background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%); z-index: 1;
             }
             .dashboard-right {
-                flex-grow: 1;
-                background: white;
-                border-top-left-radius: 28px;
-                border-top-right-radius: 28px;
-                /* 그림자로 확실한 레이어 구분 */
+                flex-grow: 1; background: white;
+                border-top-left-radius: 28px; border-top-right-radius: 28px;
                 box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
-                display: flex;
-                flex-direction: column;
-                overflow: hidden;
-                z-index: 10;
-                margin-top: -20px; /* 카드가 살짝 덮이는 느낌 */
+                display: flex; flex-direction: column; overflow: hidden;
+                z-index: 10; margin-top: -20px;
             }
             .pc-list-header { display: none !important; }
-            .mobile-header-group { display: block; margin-bottom: 20px; }
-            
-            /* 모바일 리스트 헤더 스타일 */
             .mobile-list-header {
-                display: flex !important;
-                flex-direction: column;
-                align-items: center;
-                padding: 12px 0 16px 0;
-                background: white;
-                border-bottom: 1px solid #f1f5f9;
-                position: relative;
+                display: flex !important; flex-direction: column; align-items: center;
+                padding: 12px 0 16px 0; background: white; border-bottom: 1px solid #f1f5f9;
             }
-            
-            .drag-handle {
-                width: 40px; height: 4px; 
-                background: #e2e8f0; 
-                border-radius: 2px;
-                margin-bottom: 12px;
-            }
-
+            .drag-handle { width: 40px; height: 4px; background: #e2e8f0; border-radius: 2px; margin-bottom: 12px; }
             .list-title-text {
-                font-size: 1.1rem;
-                font-weight: 700;
-                color: var(--text-main);
-                width: 100%;
-                padding-left: 24px; /* 리스트 패딩과 맞춤 */
-                text-align: left;
+                font-size: 1.1rem; font-weight: 700; color: var(--text-main);
+                width: 100%; padding-left: 24px; text-align: left;
             }
-            
-            .list-scroll-area {
-                padding: 0 24px 100px 24px;
-            }
+            .list-scroll-area { padding: 0 24px 100px 24px; }
         }
 
-        /* === Common Typography & Components === */
-        h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.5px; margin: 0; color: #111827; }
-        .subtitle { font-size: 0.95rem; color: var(--text-sub); margin-top: 4px; font-weight: 500; }
+        /* === Header Styling === */
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; margin: 0; color: #111827; }
+        
+        .month-display { 
+            font-size: 2.2rem; 
+            font-weight: 300; 
+            color: var(--primary); 
+            letter-spacing: -1px;
+            line-height: 1;
+        }
 
+        /* === Typography & Components === */
         .stat-card { text-align: center; margin-bottom: 24px; }
         
-        /* 1. 수정: 라벨 한글화 및 스타일 */
         .stat-label { 
             font-size: 0.9rem; font-weight: 700; color: var(--text-sub); 
             background: rgba(0,0,0,0.04); display: inline-block; 
@@ -178,15 +128,31 @@
         }
         
         .big-number {
-            font-size: 4.2rem;
-            font-weight: 800;
-            margin: 5px 0 15px 0;
+            font-size: 4.5rem;
+            font-weight: 200; 
+            margin: 0px 0 5px 0; /* 하단 마진 축소 */
             line-height: 1;
-            letter-spacing: -2px;
+            letter-spacing: -3px; 
             color: var(--text-main);
-            display: flex; justify-content: center; align-items: baseline; gap: 4px;
+            display: flex; justify-content: center; align-items: baseline; gap: 6px;
         }
-        .big-number span { font-size: 1.5rem; font-weight: 600; color: var(--text-sub); letter-spacing: 0; transform: translateY(-8px);}
+        .big-number span { font-size: 1.4rem; font-weight: 400; color: var(--text-sub); letter-spacing: 0; transform: translateY(-8px);}
+
+        /* 1. 추가: 요금 정보 스타일 */
+        .cost-info {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+        .cost-value {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        .cost-divider {
+            margin: 0 6px;
+            color: #d1d5db;
+        }
 
         .progress-wrapper { position: relative; height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; }
         .progress-bar { height: 100%; background: var(--primary-gradient); width: 0%; border-radius: 5px; transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
@@ -223,7 +189,6 @@
         .log-day { font-size: 0.8rem; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; }
         .log-time { font-size: 0.9rem; color: var(--text-sub); }
         
-        /* 뱃지 스타일 수정 */
         .log-badge {
             font-size: 0.9rem; font-weight: 700; color: var(--primary-dark);
             background: #eff6ff; padding: 8px 12px; border-radius: 12px;
@@ -259,14 +224,20 @@
     <div class="app-wrapper">
         
         <div class="dashboard-left">
-            <header class="mobile-header-group">
+            <header class="header-row">
                 <h1>주차 현황</h1>
-                <p class="subtitle" id="dateDisplay">데이터 로딩 중...</p>
+                <div class="month-display" id="dateDisplay">12월</div>
             </header>
 
             <div class="stat-card">
                 <div class="stat-label">🚗 사용 시간</div>
                 <div class="big-number" id="usedTimeMain">0<span>분</span></div>
+                
+                <div class="cost-info">
+                    기본 <span class="cost-value" id="baseCost">0</span>원
+                    <span class="cost-divider">|</span>
+                    추가 <span class="cost-value" id="addCost">0</span>원
+                </div>
                 
                 <div class="progress-wrapper">
                     <div class="progress-bar" id="progressBar"></div>
@@ -323,7 +294,7 @@
     }
 
     const now = new Date();
-    document.getElementById('dateDisplay').innerText = `${now.getMonth() + 1}월 현황`;
+    document.getElementById('dateDisplay').innerText = `${now.getMonth() + 1}월`;
     document.getElementById('pcDateDisplay').innerText = `${now.getFullYear()}. ${now.getMonth() + 1}`;
     
     fetchData();
@@ -346,13 +317,23 @@
             const realData = JSON.parse(data.contents);
             
             let usedMinutes = 0;
+            // 3. 추가: 요금 정보 변수 초기화
+            let baseAmount = 0;
+            let addAmount = 0;
+
             if (realData.summary && realData.summary.length > 0) {
-                const rawTime = String(realData.summary[0].applyTime); 
+                const summary = realData.summary[0];
+                const rawTime = String(summary.applyTime); 
                 usedMinutes = parseInt(rawTime.replace(/,/g, '')) || 0;
+                
+                // 3. 추가: 요금 정보 추출 (콤마 제거 후 숫자로 변환)
+                baseAmount = parseInt(String(summary.baseAmount).replace(/,/g, '')) || 0;
+                addAmount = parseInt(String(summary.addAmount).replace(/,/g, '')) || 0;
             }
 
             detailData = realData.detail || [];
-            updateUI(usedMinutes);
+            // 3. 수정: updateUI에 요금 정보 전달
+            updateUI(usedMinutes, baseAmount, addAmount);
             renderList();
         } catch (error) {
             console.error(error);
@@ -364,19 +345,22 @@
         }
     }
 
-    function updateUI(used) {
+    // 3. 수정: 요금 정보를 인자로 받음
+    function updateUI(used, base, add) {
         const remain = CONFIG.maxMinutes - used;
         const days = (remain / CONFIG.dailyMax).toFixed(1);
         const percent = Math.min(100, (used / CONFIG.maxMinutes) * 100).toFixed(1);
 
         animateValue("usedTimeMain", used);
 
+        // 4. 추가: 요금 정보 업데이트 (천단위 콤마 적용)
+        document.getElementById('baseCost').innerText = base.toLocaleString();
+        document.getElementById('addCost').innerText = add.toLocaleString();
+
         const remainEl = document.getElementById('remainTime');
-        // 1. 수정: 콤마 포맷 및 단위 추가
         remainEl.innerText = `${remain.toLocaleString()}분`; 
         remainEl.className = remain < 0 ? "info-value warning" : "info-value highlight";
         
-        // 1. 수정: 단위 추가
         document.getElementById('remainDays').innerText = `${days}일`;
         
         document.getElementById('progressBar').style.width = `${percent}%`;
@@ -391,7 +375,6 @@
 
     function animateValue(id, end) {
         const obj = document.getElementById(id);
-        // 숫자만 추출해서 시작점 잡기
         const current = parseInt(obj.innerText.replace(/,/g, '')) || 0;
         if(current === end) return;
 
@@ -403,7 +386,6 @@
             const ease = 1 - Math.pow(1 - progress, 3); 
             
             const val = Math.floor(ease * (end - current) + current);
-            // 1. 수정: 콤마 포맷
             obj.innerHTML = `${val.toLocaleString()}<span>분</span>`;
             
             if (progress < 1) {
