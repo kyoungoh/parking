@@ -49,48 +49,102 @@
         @media (min-width: 768px) {
             body { background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%); }
             .app-wrapper {
-                width: 900px; height: 600px;
+                width: 960px; /* 너비 약간 증가 */
+                height: 640px; /* 높이 약간 증가 */
                 border-radius: var(--radius-outer);
                 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
                 flex-direction: row; overflow: hidden;
             }
+            
+            /* 왼쪽 패널 스타일 재정의 */
             .dashboard-left {
-                width: 40%; background: #f8fafc; padding: 40px;
+                width: 42%; 
+                background: #f8fafc; 
+                padding: 0; /* 패딩 제거하고 내부에서 flex로 제어 */
                 border-right: 1px solid #e2e8f0;
-                display: flex; flex-direction: column; justify-content: center;
+                display: flex; 
+                flex-direction: column;
             }
+
+            /* 상단 헤더 영역 (높이 고정) */
+            .panel-header {
+                height: 80px;
+                padding: 0 40px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                border-bottom: 1px solid transparent; /* 높이 맞춤용 */
+                flex-shrink: 0;
+            }
+
+            /* 메인 컨텐츠 영역 (가운데 정렬 아님, 위에서부터 배치) */
+            .panel-content {
+                padding: 40px;
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start; /* 위쪽 정렬 */
+                gap: 30px; /* 요소 간 간격 시원하게 벌림 */
+                overflow-y: auto;
+            }
+
             .dashboard-right {
-                width: 60%; padding: 0; background: white;
+                width: 58%; padding: 0; background: white;
                 display: flex; flex-direction: column;
             }
-            .mobile-list-header { display: none !important; }
+            
             .pc-list-header {
-                display: flex !important; padding: 30px 40px 20px 40px;
-                border-bottom: 1px solid #f1f5f9; align-items: center;
+                height: 80px; /* 왼쪽 헤더와 높이 일치 */
+                padding: 0 40px;
+                display: flex !important; 
+                border-bottom: 1px solid #f1f5f9; 
+                align-items: center;
+                justify-content: space-between;
+                flex-shrink: 0;
             }
+            
+            .mobile-header-group { display: none; }
+            .mobile-list-header { display: none !important; }
+            
             .list-scroll-area { padding: 0 40px 40px 40px; }
-            .info-grid { grid-template-columns: 1fr !important; }
             .fab { position: absolute !important; bottom: 30px !important; right: 30px !important; }
         }
 
-        /* === Mobile Default Styles (767px 이하) === */
+        /* === Mobile Styles (767px 이하) === */
         @media (max-width: 767px) {
-            .app-wrapper { border-radius: 0; background: #f1f5f9; }
+            .app-wrapper { border-radius: 0; background: #f8fafc; }
+            
             .dashboard-left {
-                padding: 30px 24px 30px 24px; flex-shrink: 0;
-                background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%); z-index: 1;
+                padding: 24px;
+                flex-shrink: 0;
+                display: flex; flex-direction: column; gap: 20px;
+                background: #f8fafc;
+                z-index: 1;
             }
+            
+            /* 모바일 헤더 */
+            .panel-header {
+                display: flex; justify-content: space-between; align-items: center;
+                margin-bottom: 10px;
+            }
+            
+            /* PC용 래퍼 무력화 */
+            .panel-content {
+                display: contents; 
+            }
+
             .dashboard-right {
                 flex-grow: 1; background: white;
                 border-top-left-radius: 28px; border-top-right-radius: 28px;
                 box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
                 display: flex; flex-direction: column; overflow: hidden;
-                z-index: 10; margin-top: -20px;
+                z-index: 10; margin-top: 10px;
             }
+            
             .pc-list-header { display: none !important; }
+            
             .mobile-list-header {
                 display: flex !important; flex-direction: column; align-items: center;
-                padding: 12px 0 16px 0; background: white; border-bottom: 1px solid #f1f5f9;
+                padding: 16px 0 16px 0; background: white; border-bottom: 1px solid #f1f5f9;
             }
             .drag-handle { width: 40px; height: 4px; background: #e2e8f0; border-radius: 2px; margin-bottom: 12px; }
             .list-title-text {
@@ -100,85 +154,93 @@
             .list-scroll-area { padding: 0 24px 100px 24px; }
         }
 
-        /* === Header Styling === */
-        .header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+        /* === Typography & Components === */
+        
+        /* 타이틀 스타일 통일 */
+        h1, .list-header-title { 
+            font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; margin: 0; color: #111827; 
         }
         
-        h1 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; margin: 0; color: #111827; }
+        .month-badge {
+            font-size: 1.2rem;
+            color: var(--primary);
+            font-weight: 600;
+            background: rgba(59, 130, 246, 0.1);
+            padding: 6px 14px;
+            border-radius: 20px;
+        }
         
-        .month-display { 
-            font-size: 2.2rem; 
-            font-weight: 300; 
-            color: var(--primary); 
-            letter-spacing: -1px;
-            line-height: 1;
+        .subtitle { font-size: 0.95rem; color: var(--text-sub); font-weight: 500; }
+
+        /* 메인 통계 영역 */
+        .stat-group {
+            display: flex; flex-direction: column; align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label-chip {
+            font-size: 0.8rem; font-weight: 700; color: var(--text-sub);
+            text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 0px;
         }
 
-        /* === Typography & Components === */
-        .stat-card { text-align: center; margin-bottom: 24px; }
-        
-        .stat-label { 
-            font-size: 0.9rem; font-weight: 700; color: var(--text-sub); 
-            background: rgba(0,0,0,0.04); display: inline-block; 
-            padding: 6px 12px; border-radius: 20px; margin-bottom: 8px;
-        }
-        
+        /* 폰트 더 얇고 크게 */
         .big-number {
-            font-size: 4.5rem;
-            font-weight: 200; 
-            margin: 0px 0 5px 0; /* 하단 마진 축소 */
+            font-size: 5rem;
+            font-weight: 100; /* Thin Font */
+            margin: 0;
             line-height: 1;
-            letter-spacing: -3px; 
+            letter-spacing: -4px;
             color: var(--text-main);
             display: flex; justify-content: center; align-items: baseline; gap: 6px;
         }
-        .big-number span { font-size: 1.4rem; font-weight: 400; color: var(--text-sub); letter-spacing: 0; transform: translateY(-8px);}
+        .big-number span { 
+            font-size: 1.5rem; font-weight: 400; color: var(--text-sub); 
+            letter-spacing: 0; transform: translateY(-10px); 
+        }
 
-        /* 1. 추가: 요금 정보 스타일 */
-        .cost-info {
+        /* 요금 정보 캡슐 스타일 */
+        .cost-capsule {
+            display: inline-flex;
+            align-items: center;
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 8px 16px;
+            border-radius: 30px;
+            margin-top: 10px;
             font-size: 0.85rem;
             color: var(--text-sub);
-            margin-bottom: 15px;
-            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
-        .cost-value {
-            font-weight: 600;
-            color: var(--text-main);
-        }
-        .cost-divider {
-            margin: 0 6px;
-            color: #d1d5db;
-        }
+        .cost-val { font-weight: 700; color: var(--text-main); margin-left: 4px; }
+        .cost-sep { margin: 0 10px; color: #cbd5e1; height: 12px; border-left: 1px solid #cbd5e1; }
 
-        .progress-wrapper { position: relative; height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; }
-        .progress-bar { height: 100%; background: var(--primary-gradient); width: 0%; border-radius: 5px; transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
-        .limit-text { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-sub); margin-top: 8px; font-weight: 500; }
+        /* Progress Area */
+        .progress-section { width: 100%; margin-top: 10px; }
+        .progress-wrapper { position: relative; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--primary-gradient); width: 0%; border-radius: 4px; transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .limit-text { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-sub); margin-top: 8px; font-weight: 500; }
 
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        /* Info Grid */
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
         .info-box {
             background: white; padding: 20px; border-radius: var(--radius-inner);
-            border: 1px solid #edf2f7; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            display: flex; flex-direction: column; align-items: flex-start;
         }
-        @media (min-width: 768px) { .info-box { border: 1px solid #e2e8f0; box-shadow: none; } }
 
-        .info-title { font-size: 0.85rem; color: var(--text-sub); font-weight: 600; margin-bottom: 6px; }
-        .info-value { font-size: 1.35rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.5px; }
+        .info-title { font-size: 0.8rem; color: var(--text-sub); font-weight: 600; margin-bottom: 4px; }
+        .info-value { font-size: 1.4rem; font-weight: 700; color: var(--text-main); letter-spacing: -1px; }
         .highlight { color: var(--primary); }
         .warning { color: var(--accent); }
 
-        .list-header-title { font-size: 1.2rem; font-weight: 700; color: var(--text-main); }
-        
         .list-scroll-area { flex-grow: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .list-scroll-area::-webkit-scrollbar { width: 6px; }
         .list-scroll-area::-webkit-scrollbar-track { background: transparent; }
         .list-scroll-area::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
 
         .log-item {
-            padding: 16px 0;
+            padding: 18px 0;
             border-bottom: 1px solid #f1f5f9;
             display: flex; justify-content: space-between; align-items: center;
             animation: slideUp 0.4s ease-out forwards; opacity: 0; transform: translateY(10px);
@@ -224,38 +286,44 @@
     <div class="app-wrapper">
         
         <div class="dashboard-left">
-            <header class="header-row">
+            
+            <div class="panel-header">
                 <h1>주차 현황</h1>
-                <div class="month-display" id="dateDisplay">12월</div>
-            </header>
-
-            <div class="stat-card">
-                <div class="stat-label">🚗 사용 시간</div>
-                <div class="big-number" id="usedTimeMain">0<span>분</span></div>
-                
-                <div class="cost-info">
-                    기본 <span class="cost-value" id="baseCost">0</span>원
-                    <span class="cost-divider">|</span>
-                    추가 <span class="cost-value" id="addCost">0</span>원
-                </div>
-                
-                <div class="progress-wrapper">
-                    <div class="progress-bar" id="progressBar"></div>
-                </div>
-                <div class="limit-text">
-                    <span id="percentText">0%</span>
-                    <span>최대 5,400분</span>
-                </div>
+                <div class="month-badge" id="dateDisplay">12월</div>
             </div>
 
-            <div class="info-grid">
-                <div class="info-box">
-                    <div class="info-title">남은 시간</div>
-                    <div class="info-value highlight" id="remainTime">-</div>
+            <div class="panel-content">
+                
+                <div class="stat-group">
+                    <span class="stat-label-chip">Total Usage</span>
+                    <div class="big-number" id="usedTimeMain">0<span>분</span></div>
+                    
+                    <div class="cost-capsule">
+                        기본 <span class="cost-val" id="baseCost">0</span>원
+                        <div class="cost-sep"></div>
+                        추가 <span class="cost-val" id="addCost">0</span>원
+                    </div>
                 </div>
-                <div class="info-box">
-                    <div class="info-title">주차 가능 일수</div>
-                    <div class="info-value" id="remainDays">-</div>
+                
+                <div class="progress-section">
+                    <div class="progress-wrapper">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                    <div class="limit-text">
+                        <span id="percentText">0%</span>
+                        <span>최대 5,400분</span>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-box">
+                        <div class="info-title">남은 시간</div>
+                        <div class="info-value highlight" id="remainTime">-</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-title">주차 가능 일수</div>
+                        <div class="info-value" id="remainDays">-</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -263,7 +331,7 @@
         <div class="dashboard-right">
             <div class="pc-list-header">
                 <span class="list-header-title">상세 기록</span>
-                <span class="subtitle" style="margin-left: auto;" id="pcDateDisplay">Loading...</span>
+                <span class="subtitle" id="pcDateDisplay">Loading...</span>
             </div>
             
             <div class="mobile-list-header">
@@ -317,7 +385,6 @@
             const realData = JSON.parse(data.contents);
             
             let usedMinutes = 0;
-            // 3. 추가: 요금 정보 변수 초기화
             let baseAmount = 0;
             let addAmount = 0;
 
@@ -325,14 +392,11 @@
                 const summary = realData.summary[0];
                 const rawTime = String(summary.applyTime); 
                 usedMinutes = parseInt(rawTime.replace(/,/g, '')) || 0;
-                
-                // 3. 추가: 요금 정보 추출 (콤마 제거 후 숫자로 변환)
                 baseAmount = parseInt(String(summary.baseAmount).replace(/,/g, '')) || 0;
                 addAmount = parseInt(String(summary.addAmount).replace(/,/g, '')) || 0;
             }
 
             detailData = realData.detail || [];
-            // 3. 수정: updateUI에 요금 정보 전달
             updateUI(usedMinutes, baseAmount, addAmount);
             renderList();
         } catch (error) {
@@ -345,7 +409,6 @@
         }
     }
 
-    // 3. 수정: 요금 정보를 인자로 받음
     function updateUI(used, base, add) {
         const remain = CONFIG.maxMinutes - used;
         const days = (remain / CONFIG.dailyMax).toFixed(1);
@@ -353,7 +416,6 @@
 
         animateValue("usedTimeMain", used);
 
-        // 4. 추가: 요금 정보 업데이트 (천단위 콤마 적용)
         document.getElementById('baseCost').innerText = base.toLocaleString();
         document.getElementById('addCost').innerText = add.toLocaleString();
 
