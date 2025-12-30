@@ -23,9 +23,13 @@
         body {
             font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
             background-color: var(--bg-color);
-            margin: 0; padding: 0; height: 100vh;
+            margin: 0; padding: 0; 
+            /* 화면 깨짐 방지: 뷰포트 고정 및 오버스크롤 방지 */
+            width: 100%; height: 100dvh; 
+            overflow: hidden; 
+            overscroll-behavior: none;
             display: flex; justify-content: center; align-items: center;
-            overflow: hidden; color: var(--text-main);
+            color: var(--text-main);
         }
 
         /* === App Container === */
@@ -79,7 +83,8 @@
             .app-wrapper { border-radius: 0; background: #f8fafc; }
             
             .dashboard-left {
-                padding: 24px 24px 180px 24px;
+                /* 하단 여백 확보 (초기 리스트 높이만큼) */
+                padding: 24px 24px 160px 24px;
                 width: 100%; height: 100%;
                 display: flex; flex-direction: column; gap: 20px;
                 background: #f8fafc; z-index: 1; overflow-y: auto;
@@ -91,31 +96,36 @@
             }
             .panel-content { display: contents; }
 
-            /* 바텀 시트 스타일 */
+            /* 3. 수정: 바텀 시트 'Fixed' 포지셔닝으로 변경 (화면 깨짐 해결) */
             .dashboard-right {
-                position: absolute; bottom: 0; left: 0; right: 0;
-                height: 35vh; /* 기본 높이 */
+                position: fixed; /* 절대 좌표 고정 */
+                bottom: 0; left: 0; right: 0;
+                height: 90dvh; /* 전체 높이의 90% */
                 background: white;
                 border-top-left-radius: 28px; border-top-right-radius: 28px;
-                box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+                box-shadow: 0 -5px 30px rgba(0,0,0,0.1);
                 display: flex; flex-direction: column;
-                z-index: 50;
-                /* 2. 수정: 애니메이션 속도 조절 (부드럽게) */
-                transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
-                transform: translateY(0);
+                z-index: 100;
+                /* 초기 위치: 화면 아래로 내려가 있음 (헤더만 보이게) */
+                transform: translateY(calc(100% - 130px)); 
+                transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+                will-change: transform; /* 성능 최적화 */
             }
             
-            /* 확장 클래스 (JS로 제어) */
-            .dashboard-right.expanded {
-                transform: translateY(-58vh); /* 위로 올림 (계산된 값) */
-                height: 93vh; /* 거의 전체 화면 */
+            /* 드래그 중일 때는 애니메이션 끔 (즉각 반응) */
+            .dashboard-right.dragging {
+                transition: none;
             }
 
-            /* 배경 어둡게 */
+            /* 확장 상태 */
+            .dashboard-right.expanded {
+                transform: translateY(0);
+            }
+
             .backdrop {
-                position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(0,0,0,0.4); opacity: 0; pointer-events: none;
-                transition: opacity 0.5s; z-index: 40;
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none;
+                transition: opacity 0.4s; z-index: 90;
             }
             .backdrop.active { opacity: 1; pointer-events: all; }
 
@@ -124,10 +134,10 @@
             .mobile-list-header {
                 display: flex !important; flex-direction: column; align-items: center;
                 padding: 12px 0 16px 0; background: white; border-bottom: 1px solid #f1f5f9;
-                /* 터치 영역 확대 */
-                padding-top: 20px;
-                cursor: grab;
+                /* 터치 영역 */
+                height: 60px;
                 flex-shrink: 0;
+                cursor: grab;
             }
             
             .drag-handle { 
@@ -189,7 +199,7 @@
         .fab svg { fill: white; width: 24px; height: 24px; transition: transform 0.5s; }
         .fab.spinning svg { transform: rotate(360deg); }
 
-        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 60; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 120; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .loading-overlay.active { opacity: 1; pointer-events: all; }
         .spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
 
@@ -254,39 +264,77 @@
     const CONFIG = { empNo: "31633", maxMinutes: 5400, dailyMax: 540 };
     let detailData = [];
 
-    // --- 2. 바텀 시트 제스처 로직 추가 ---
-    let startY = 0;
-    let isDragging = false;
+    // --- 3. 수정: 개선된 바텀 시트 제스처 로직 ---
     const sheet = document.getElementById('bottomSheet');
     const header = document.getElementById('sheetHeader');
     const backdrop = document.getElementById('backdrop');
 
-    // 헤더 터치 이벤트 (열기/닫기)
+    let startY = 0;
+    let currentY = 0;
+    let isDragging = false;
+    const SHEET_HEIGHT = window.innerHeight * 0.9;
+    const COLLAPSED_HEIGHT = 130; // 닫혔을 때 보여지는 높이
+    const INITIAL_TRANSFORM = `calc(100% - ${COLLAPSED_HEIGHT}px)`;
+
+    // 헤더 터치 시작
     header.addEventListener('touchstart', (e) => {
         startY = e.touches[0].clientY;
         isDragging = true;
+        sheet.classList.add('dragging'); // 애니메이션 끄기 (실시간 반응)
     });
 
+    // 헤더 드래그 중
     header.addEventListener('touchmove', (e) => {
         if (!isDragging) return;
-        const currentY = e.touches[0].clientY;
-        const diff = currentY - startY;
+        // 중요: 화면 전체 스크롤 방지
+        e.preventDefault(); 
+        
+        currentY = e.touches[0].clientY;
+        const deltaY = currentY - startY;
+        
+        // 현재 상태에 따른 위치 계산
+        const isExpanded = sheet.classList.contains('expanded');
+        let newTranslateY = 0;
 
-        // 아래로 많이 끌면 닫기
-        if (diff > 50 && sheet.classList.contains('expanded')) {
-            closeSheet();
-            isDragging = false;
+        if (isExpanded) {
+            // 열린 상태에서 내리기 (deltaY > 0)
+            newTranslateY = Math.max(0, deltaY);
+        } else {
+            // 닫힌 상태에서 올리기 (deltaY < 0)
+            // 화면 높이의 90% - 130px 만큼 이동 가능
+            const maxMove = window.innerHeight - COLLAPSED_HEIGHT;
+            newTranslateY = (window.innerHeight - COLLAPSED_HEIGHT) + deltaY;
         }
-        // 위로 끌면 열기
-        else if (diff < -30 && !sheet.classList.contains('expanded')) {
-            openSheet();
-            isDragging = false;
+        
+        // 단순화를 위해 transform 직접 제어하지 않고 끝난 후 처리 (성능 및 복잡도 고려)
+        // 하지만 부드러운 1:1 반응을 위해 transform 적용
+        // 닫힌 상태 기준점: window.innerHeight - 130
+        // 열린 상태 기준점: window.innerHeight * 0.1
+        
+        // 여기서는 간단하게 "터치한 만큼 이동"보다는 "방향 감지" 후 놓았을 때 액션으로 처리
+        // 1:1 트래킹은 로직이 복잡해질 수 있어, "방향"만 확실히 잡습니다.
+    }, { passive: false });
+
+    // 터치 끝
+    header.addEventListener('touchend', (e) => {
+        isDragging = false;
+        sheet.classList.remove('dragging'); // 애니메이션 다시 켜기
+
+        const endY = e.changedTouches[0].clientY;
+        const diff = endY - startY;
+
+        // 50px 이상 움직였으면 동작 수행
+        if (Math.abs(diff) > 50) {
+            if (diff > 0) closeSheet(); // 아래로 드래그 -> 닫기
+            else openSheet(); // 위로 드래그 -> 열기
+        } else {
+            // 조금만 움직였으면 토글
+             if (sheet.classList.contains('expanded')) closeSheet();
+             else openSheet();
         }
     });
-
-    header.addEventListener('touchend', () => { isDragging = false; });
     
-    // 단순 클릭 시 토글
+    // 클릭 시 토글
     header.addEventListener('click', () => {
         if (sheet.classList.contains('expanded')) closeSheet();
         else openSheet();
@@ -294,13 +342,11 @@
 
     function openSheet() {
         sheet.classList.add('expanded');
-        sheet.style.transform = "translateY(-58vh)"; // 모바일 CSS 매칭
         backdrop.classList.add('active');
     }
 
     function closeSheet() {
         sheet.classList.remove('expanded');
-        sheet.style.transform = "translateY(0)";
         backdrop.classList.remove('active');
     }
     // ----------------------------------
@@ -410,6 +456,14 @@
         return `${String(dateObj.getMonth() + 1).padStart(2, '0')}.${String(dateObj.getDate()).padStart(2, '0')}`;
     }
 
+    function parseRawDate(str) {
+        if(!str || str.length !== 8) return null;
+        const y = str.substring(0,4);
+        const m = str.substring(4,6);
+        const d = str.substring(6,8);
+        return new Date(y, m-1, d);
+    }
+
     function renderList() {
         const container = document.getElementById('listContainer');
         container.innerHTML = ""; 
@@ -424,28 +478,22 @@
         detailData.forEach((item, index) => {
             let displayDateObj = null;
 
-            // 1. 수정: deductDate가 있으면 무조건 그걸 씀 (어떤 형식이든 파싱 시도)
+            // 1. 날짜 파싱 로직 강화
             if (item.deductDate) {
-                 // 숫자로 된 8자리 문자열인 경우 (20251230)
                  if (item.deductDate.length === 8 && !isNaN(item.deductDate)) {
                      const y = item.deductDate.substring(0,4);
                      const m = item.deductDate.substring(4,6);
                      const d = item.deductDate.substring(6,8);
                      displayDateObj = new Date(y, m-1, d);
-                 } 
-                 // ISO 형식 등 긴 문자열인 경우 (2025-12-30T...)
-                 else {
+                 } else {
                      displayDateObj = new Date(item.deductDate);
                  }
-            } 
-            else if (item.deductDateFormat) {
+            } else if (item.deductDateFormat) {
                 displayDateObj = new Date(item.deductDateFormat);
-            } 
-            else {
+            } else {
                 displayDateObj = new Date(item.inGateDateTime);
             }
 
-            // 날짜 객체가 유효하지 않으면 입차 시간으로 fallback
             if (isNaN(displayDateObj.getTime())) {
                 displayDateObj = new Date(item.inGateDateTime);
             }
