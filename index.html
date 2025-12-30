@@ -175,18 +175,17 @@
             margin-bottom: 0px;
         }
 
-        /* 2. 수정: 폰트 자간 및 간격 조정 */
         .big-number {
             font-size: 5rem;
             font-weight: 100; /* Thin Font */
             margin: 0;
             line-height: 1;
-            letter-spacing: -1px; /* 자간을 살짝 벌림 (기존 -4px) */
+            letter-spacing: -1px; 
             color: var(--text-main);
             display: flex; 
             justify-content: center; 
             align-items: baseline; 
-            gap: 12px; /* 숫자와 단위 사이 간격 확대 (기존 6px) */
+            gap: 12px; 
         }
         .big-number span { 
             font-size: 1.5rem; font-weight: 400; color: var(--text-sub); 
@@ -238,9 +237,12 @@
         }
         
         .log-left { display: flex; flex-direction: column; gap: 4px; }
+        
         .log-date { font-size: 1rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
         .log-day { font-size: 0.8rem; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; }
-        .log-time { font-size: 0.9rem; color: var(--text-sub); }
+        
+        /* 1. 수정: 시간 표시 폰트 사이즈 조정 (내용이 길어져서) */
+        .log-time { font-size: 0.85rem; color: var(--text-sub); letter-spacing: -0.3px; }
         
         .log-badge {
             font-size: 0.9rem; font-weight: 700; color: var(--primary-dark);
@@ -353,7 +355,6 @@
     }
 
     const now = new Date();
-    // 1. 수정: 연도 포함하여 초기화
     document.getElementById('dateDisplay').innerText = `${now.getFullYear()}년 ${now.getMonth() + 1}월`;
     document.getElementById('pcDateDisplay').innerText = `${now.getFullYear()}. ${now.getMonth() + 1}`;
     
@@ -449,10 +450,14 @@
         window.requestAnimationFrame(step);
     }
 
-    function formatTime(dateObj) {
-        const hours = String(dateObj.getHours()).padStart(2, '0');
-        const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-        return `${hours}:${minutes}`;
+    // 2. 수정: 날짜+시간 포맷 함수 (25-12-29 09:25 형태)
+    function formatFullDateTime(dateObj) {
+        const yy = String(dateObj.getFullYear()).slice(-2); // 2025 -> 25
+        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const dd = String(dateObj.getDate()).padStart(2, '0');
+        const hh = String(dateObj.getHours()).padStart(2, '0');
+        const min = String(dateObj.getMinutes()).padStart(2, '0');
+        return `${yy}-${mm}-${dd} ${hh}:${min}`;
     }
 
     function getDayName(dateObj) {
@@ -460,6 +465,7 @@
         return dayNames[dateObj.getDay()];
     }
     
+    // 단순 날짜 (MM.DD)
     function formatDate(dateObj) {
         return `${String(dateObj.getMonth() + 1).padStart(2, '0')}.${String(dateObj.getDate()).padStart(2, '0')}`;
     }
@@ -479,19 +485,34 @@
         detailData.sort((a, b) => new Date(b.inGateDateTime) - new Date(a.inGateDateTime));
 
         detailData.forEach((item, index) => {
-            const inDate = new Date(item.inGateDateTime);
-            const outDate = item.outGateDateTime ? new Date(item.outGateDateTime) : null;
+            // 3. 수정: 과금 처리일자 우선 사용 로직
+            let displayDate = "";
+            let displayDay = "";
             
-            const dateStr = formatDate(inDate);
-            const dayStr = getDayName(inDate);
-            const inTimeStr = formatTime(inDate); 
-            const outTimeStr = outDate ? formatTime(outDate) : "주차중";
+            if (item.deductDateFormat) {
+                // deductDateFormat이 "2025-12-04" 형태라고 가정하고 파싱
+                const d = new Date(item.deductDateFormat);
+                displayDate = formatDate(d);
+                displayDay = getDayName(d);
+            } else {
+                // 없을 경우 기존 입차시간 기준
+                const inD = new Date(item.inGateDateTime);
+                displayDate = formatDate(inD);
+                displayDay = getDayName(inD);
+            }
+
+            // 4. 수정: 입출차 시간 전체 포맷 표시
+            const inDateFull = new Date(item.inGateDateTime);
+            const outDateFull = item.outGateDateTime ? new Date(item.outGateDateTime) : null;
+            
+            const inTimeStr = formatFullDateTime(inDateFull); 
+            const outTimeStr = outDateFull ? formatFullDateTime(outDateFull) : "주차중";
 
             const row = `
                 <div class="log-item" style="animation-delay: ${index * 0.05}s">
                     <div class="log-left">
                         <div class="log-date">
-                            ${dateStr} <span class="log-day">${dayStr}</span>
+                            ${displayDate} <span class="log-day">${displayDay}</span>
                         </div>
                         <div class="log-time">${inTimeStr} ~ ${outTimeStr}</div>
                     </div>
