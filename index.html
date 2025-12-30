@@ -23,28 +23,20 @@
         body {
             font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
             background-color: var(--bg-color);
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden; 
-            color: var(--text-main);
+            margin: 0; padding: 0; height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; color: var(--text-main);
         }
 
         /* === App Container === */
         .app-wrapper {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             background: var(--card-bg);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
+            display: flex; flex-direction: column;
+            position: relative; overflow: hidden;
         }
 
-        /* === PC 대응 (768px 이상) === */
+        /* === PC (768px 이상) === */
         @media (min-width: 768px) {
             body { background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%); }
             .app-wrapper {
@@ -82,12 +74,12 @@
             .fab { position: absolute !important; bottom: 30px !important; right: 30px !important; }
         }
 
-        /* === Mobile Styles (Bottom Sheet 적용) === */
+        /* === Mobile (767px 이하) === */
         @media (max-width: 767px) {
             .app-wrapper { border-radius: 0; background: #f8fafc; }
             
             .dashboard-left {
-                padding: 24px 24px 180px 24px; /* 하단 여백 확보 (리스트가 가릴 예정) */
+                padding: 24px 24px 180px 24px;
                 width: 100%; height: 100%;
                 display: flex; flex-direction: column; gap: 20px;
                 background: #f8fafc; z-index: 1; overflow-y: auto;
@@ -99,29 +91,31 @@
             }
             .panel-content { display: contents; }
 
-            /* 3. 수정: 바텀 시트 (Bottom Sheet) 스타일 적용 */
+            /* 바텀 시트 스타일 */
             .dashboard-right {
-                position: absolute;
-                bottom: 0; left: 0; right: 0;
-                height: 35vh; /* 초기 높이 (약 2.5개 보일 정도) */
+                position: absolute; bottom: 0; left: 0; right: 0;
+                height: 35vh; /* 기본 높이 */
                 background: white;
                 border-top-left-radius: 28px; border-top-right-radius: 28px;
                 box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
                 display: flex; flex-direction: column;
                 z-index: 50;
-                transition: height 0.4s cubic-bezier(0.19, 1, 0.22, 1); /* 부드러운 애니메이션 */
+                /* 2. 수정: 애니메이션 속도 조절 (부드럽게) */
+                transition: transform 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+                transform: translateY(0);
             }
             
-            /* 확장되었을 때 스타일 */
+            /* 확장 클래스 (JS로 제어) */
             .dashboard-right.expanded {
-                height: 92vh; /* 화면 거의 꽉 차게 */
+                transform: translateY(-58vh); /* 위로 올림 (계산된 값) */
+                height: 93vh; /* 거의 전체 화면 */
             }
 
-            /* 배경 어둡게 처리 (Overlay) */
+            /* 배경 어둡게 */
             .backdrop {
                 position: absolute; top: 0; left: 0; width: 100%; height: 100%;
                 background: rgba(0,0,0,0.4); opacity: 0; pointer-events: none;
-                transition: opacity 0.4s; z-index: 40;
+                transition: opacity 0.5s; z-index: 40;
             }
             .backdrop.active { opacity: 1; pointer-events: all; }
 
@@ -130,7 +124,9 @@
             .mobile-list-header {
                 display: flex !important; flex-direction: column; align-items: center;
                 padding: 12px 0 16px 0; background: white; border-bottom: 1px solid #f1f5f9;
-                cursor: pointer; /* 터치 가능 표시 */
+                /* 터치 영역 확대 */
+                padding-top: 20px;
+                cursor: grab;
                 flex-shrink: 0;
             }
             
@@ -146,48 +142,21 @@
             .list-scroll-area { 
                 padding: 0 24px 100px 24px; 
                 overflow-y: auto;
+                overscroll-behavior: contain;
             }
         }
 
         /* === Typography & Components === */
-        h1, .list-header-title { 
-            font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; margin: 0; color: #111827; 
-        }
-        
-        .month-badge {
-            font-size: 1.1rem; color: var(--primary); font-weight: 600;
-            background: rgba(59, 130, 246, 0.1); padding: 8px 16px;
-            border-radius: 20px; letter-spacing: -0.5px;
-        }
-        
+        h1, .list-header-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; margin: 0; color: #111827; }
+        .month-badge { font-size: 1.1rem; color: var(--primary); font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 8px 16px; border-radius: 20px; letter-spacing: -0.5px; }
         .subtitle { font-size: 0.95rem; color: var(--text-sub); font-weight: 500; }
+        .stat-group { display: flex; flex-direction: column; align-items: center; margin-bottom: 10px; }
+        .stat-label-chip { font-size: 0.8rem; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
 
-        .stat-group {
-            display: flex; flex-direction: column; align-items: center;
-            margin-bottom: 10px;
-        }
-        
-        .stat-label-chip {
-            font-size: 0.8rem; font-weight: 700; color: var(--text-sub);
-            text-transform: uppercase; letter-spacing: 1px;
-        }
+        .big-number { font-size: 5rem; font-weight: 100; margin: 0; line-height: 1; letter-spacing: -1px; color: var(--text-main); display: flex; justify-content: center; align-items: baseline; gap: 12px; }
+        .big-number span { font-size: 1.5rem; font-weight: 400; color: var(--text-sub); letter-spacing: 0; transform: translateY(-10px); }
 
-        .big-number {
-            font-size: 5rem; font-weight: 100; margin: 0; line-height: 1;
-            letter-spacing: -1px; color: var(--text-main);
-            display: flex; justify-content: center; align-items: baseline; gap: 12px; 
-        }
-        .big-number span { 
-            font-size: 1.5rem; font-weight: 400; color: var(--text-sub); 
-            letter-spacing: 0; transform: translateY(-10px); 
-        }
-
-        .cost-capsule {
-            display: inline-flex; align-items: center; background: white;
-            border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 30px;
-            margin-top: 10px; font-size: 0.85rem; color: var(--text-sub);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
+        .cost-capsule { display: inline-flex; align-items: center; background: white; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 30px; margin-top: 10px; font-size: 0.85rem; color: var(--text-sub); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .cost-val { font-weight: 700; color: var(--text-main); margin-left: 4px; }
         .cost-sep { margin: 0 10px; color: #cbd5e1; height: 12px; border-left: 1px solid #cbd5e1; }
 
@@ -197,12 +166,7 @@
         .limit-text { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-sub); margin-top: 8px; font-weight: 500; }
 
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
-        .info-box {
-            background: white; padding: 20px; border-radius: var(--radius-inner);
-            border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-            display: flex; flex-direction: column; align-items: flex-start;
-        }
-
+        .info-box { background: white; padding: 20px; border-radius: var(--radius-inner); border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: flex-start; }
         .info-title { font-size: 0.8rem; color: var(--text-sub); font-weight: 600; margin-bottom: 4px; }
         .info-value { font-size: 1.4rem; font-weight: 700; color: var(--text-main); letter-spacing: -1px; }
         .highlight { color: var(--primary); }
@@ -213,42 +177,19 @@
         .list-scroll-area::-webkit-scrollbar-track { background: transparent; }
         .list-scroll-area::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
 
-        .log-item {
-            padding: 18px 0; border-bottom: 1px solid #f1f5f9;
-            display: flex; justify-content: space-between; align-items: center;
-            animation: slideUp 0.4s ease-out forwards; opacity: 0; transform: translateY(10px);
-        }
-        
+        .log-item { padding: 18px 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; animation: slideUp 0.4s ease-out forwards; opacity: 0; transform: translateY(10px); }
         .log-left { display: flex; flex-direction: column; gap: 4px; }
-        
         .log-date { font-size: 1rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
         .log-day { font-size: 0.8rem; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; }
-        
         .log-time { font-size: 0.85rem; color: var(--text-sub); letter-spacing: -0.3px; }
-        
-        .log-badge {
-            font-size: 0.9rem; font-weight: 700; color: var(--primary-dark);
-            background: #eff6ff; padding: 8px 12px; border-radius: 12px;
-            min-width: 80px; text-align: center; white-space: nowrap;
-        }
+        .log-badge { font-size: 0.9rem; font-weight: 700; color: var(--primary-dark); background: #eff6ff; padding: 8px 12px; border-radius: 12px; min-width: 80px; text-align: center; white-space: nowrap; }
 
-        .fab {
-            position: fixed; bottom: 24px; right: 24px;
-            width: 56px; height: 56px; background: var(--text-main); border-radius: 50%;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.25); border: none; cursor: pointer;
-            display: flex; justify-content: center; align-items: center; z-index: 100;
-            transition: transform 0.2s;
-        }
+        .fab { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; background: var(--text-main); border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.25); border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; z-index: 100; transition: transform 0.2s; }
         .fab:active { transform: scale(0.95); }
         .fab svg { fill: white; width: 24px; height: 24px; transition: transform 0.5s; }
         .fab.spinning svg { transform: rotate(360deg); }
 
-        .loading-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.8); backdrop-filter: blur(4px);
-            display: flex; justify-content: center; align-items: center; z-index: 60;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s;
-        }
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 60; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .loading-overlay.active { opacity: 1; pointer-events: all; }
         .spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
 
@@ -259,8 +200,7 @@
 <body>
 
     <div class="app-wrapper">
-        
-        <div class="backdrop" id="backdrop" onclick="toggleSheet(false)"></div>
+        <div class="backdrop" id="backdrop" onclick="closeSheet()"></div>
 
         <div class="dashboard-left">
             <div class="panel-header">
@@ -278,26 +218,13 @@
                         추가 <span class="cost-val" id="addCost">0</span>원
                     </div>
                 </div>
-                
                 <div class="progress-section">
-                    <div class="progress-wrapper">
-                        <div class="progress-bar" id="progressBar"></div>
-                    </div>
-                    <div class="limit-text">
-                        <span id="percentText">0%</span>
-                        <span>최대 5,400분</span>
-                    </div>
+                    <div class="progress-wrapper"><div class="progress-bar" id="progressBar"></div></div>
+                    <div class="limit-text"><span id="percentText">0%</span><span>최대 5,400분</span></div>
                 </div>
-
                 <div class="info-grid">
-                    <div class="info-box">
-                        <div class="info-title">남은 시간</div>
-                        <div class="info-value highlight" id="remainTime">-</div>
-                    </div>
-                    <div class="info-box">
-                        <div class="info-title">주차 가능 일수</div>
-                        <div class="info-value" id="remainDays">-</div>
-                    </div>
+                    <div class="info-box"><div class="info-title">남은 시간</div><div class="info-value highlight" id="remainTime">-</div></div>
+                    <div class="info-box"><div class="info-title">주차 가능 일수</div><div class="info-value" id="remainDays">-</div></div>
                 </div>
             </div>
         </div>
@@ -308,7 +235,7 @@
                 <span class="subtitle" id="pcDateDisplay">Loading...</span>
             </div>
             
-            <div class="mobile-list-header" onclick="toggleSheet()">
+            <div class="mobile-list-header" id="sheetHeader">
                 <div class="drag-handle"></div>
                 <span class="list-title-text">상세 기록</span>
             </div>
@@ -320,15 +247,63 @@
         <button class="fab" onclick="fetchData()">
             <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
         </button>
-        
-        <div class="loading-overlay" id="loader">
-            <div class="spinner"></div>
-        </div>
+        <div class="loading-overlay" id="loader"><div class="spinner"></div></div>
     </div>
 
 <script>
     const CONFIG = { empNo: "31633", maxMinutes: 5400, dailyMax: 540 };
     let detailData = [];
+
+    // --- 2. 바텀 시트 제스처 로직 추가 ---
+    let startY = 0;
+    let isDragging = false;
+    const sheet = document.getElementById('bottomSheet');
+    const header = document.getElementById('sheetHeader');
+    const backdrop = document.getElementById('backdrop');
+
+    // 헤더 터치 이벤트 (열기/닫기)
+    header.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].clientY;
+        isDragging = true;
+    });
+
+    header.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const currentY = e.touches[0].clientY;
+        const diff = currentY - startY;
+
+        // 아래로 많이 끌면 닫기
+        if (diff > 50 && sheet.classList.contains('expanded')) {
+            closeSheet();
+            isDragging = false;
+        }
+        // 위로 끌면 열기
+        else if (diff < -30 && !sheet.classList.contains('expanded')) {
+            openSheet();
+            isDragging = false;
+        }
+    });
+
+    header.addEventListener('touchend', () => { isDragging = false; });
+    
+    // 단순 클릭 시 토글
+    header.addEventListener('click', () => {
+        if (sheet.classList.contains('expanded')) closeSheet();
+        else openSheet();
+    });
+
+    function openSheet() {
+        sheet.classList.add('expanded');
+        sheet.style.transform = "translateY(-58vh)"; // 모바일 CSS 매칭
+        backdrop.classList.add('active');
+    }
+
+    function closeSheet() {
+        sheet.classList.remove('expanded');
+        sheet.style.transform = "translateY(0)";
+        backdrop.classList.remove('active');
+    }
+    // ----------------------------------
 
     function getYYYYMM() {
         const d = new Date();
@@ -340,25 +315,6 @@
     document.getElementById('pcDateDisplay').innerText = `${now.getFullYear()}. ${now.getMonth() + 1}`;
     
     fetchData();
-
-    // 3. 수정: 바텀 시트 토글 함수
-    function toggleSheet(forceState) {
-        const sheet = document.getElementById('bottomSheet');
-        const backdrop = document.getElementById('backdrop');
-        
-        if (typeof forceState === 'boolean') {
-            if (forceState) {
-                sheet.classList.add('expanded');
-                backdrop.classList.add('active');
-            } else {
-                sheet.classList.remove('expanded');
-                backdrop.classList.remove('active');
-            }
-        } else {
-            sheet.classList.toggle('expanded');
-            backdrop.classList.toggle('active');
-        }
-    }
 
     async function fetchData() {
         const loader = document.getElementById('loader');
@@ -408,31 +364,22 @@
         const percent = Math.min(100, (used / CONFIG.maxMinutes) * 100).toFixed(1);
 
         animateValue("usedTimeMain", used);
-
         document.getElementById('baseCost').innerText = base.toLocaleString();
         document.getElementById('addCost').innerText = add.toLocaleString();
-
         const remainEl = document.getElementById('remainTime');
         remainEl.innerText = `${remain.toLocaleString()}분`; 
         remainEl.className = remain < 0 ? "info-value warning" : "info-value highlight";
-        
         document.getElementById('remainDays').innerText = `${days}일`;
-        
         document.getElementById('progressBar').style.width = `${percent}%`;
         document.getElementById('percentText').innerText = `${Math.round(percent)}%`;
-        
-        if(remain < 0) {
-            document.getElementById('progressBar').style.background = "#f43f5e";
-        } else {
-            document.getElementById('progressBar').style.background = "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)";
-        }
+        if(remain < 0) document.getElementById('progressBar').style.background = "#f43f5e";
+        else document.getElementById('progressBar').style.background = "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)";
     }
 
     function animateValue(id, end) {
         const obj = document.getElementById(id);
         const current = parseInt(obj.innerText.replace(/,/g, '')) || 0;
         if(current === end) return;
-
         const duration = 800;
         let startTimestamp = null;
         const step = (timestamp) => {
@@ -446,7 +393,6 @@
         window.requestAnimationFrame(step);
     }
 
-    // 2. 수정: 연도 없는 짧은 시간 포맷 (12-29 09:25)
     function formatShortDateTime(dateObj) {
         const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
         const dd = String(dateObj.getDate()).padStart(2, '0');
@@ -464,15 +410,6 @@
         return `${String(dateObj.getMonth() + 1).padStart(2, '0')}.${String(dateObj.getDate()).padStart(2, '0')}`;
     }
 
-    // 1. 수정: 원본 데이터 문자열(YYYYMMDD) 파싱 함수
-    function parseRawDate(str) {
-        if(!str || str.length !== 8) return null;
-        const y = str.substring(0,4);
-        const m = str.substring(4,6);
-        const d = str.substring(6,8);
-        return new Date(y, m-1, d);
-    }
-
     function renderList() {
         const container = document.getElementById('listContainer');
         container.innerHTML = ""; 
@@ -487,27 +424,37 @@
         detailData.forEach((item, index) => {
             let displayDateObj = null;
 
-            // 1. 수정: deductDate 원본 필드(숫자형 문자열) 우선 파싱
-            // 데이터에 deductDate: "20251230" 같은 필드가 있다면 그걸 최우선으로 씀
-            if (item.deductDate && item.deductDate.length === 8) {
-                displayDateObj = parseRawDate(item.deductDate);
+            // 1. 수정: deductDate가 있으면 무조건 그걸 씀 (어떤 형식이든 파싱 시도)
+            if (item.deductDate) {
+                 // 숫자로 된 8자리 문자열인 경우 (20251230)
+                 if (item.deductDate.length === 8 && !isNaN(item.deductDate)) {
+                     const y = item.deductDate.substring(0,4);
+                     const m = item.deductDate.substring(4,6);
+                     const d = item.deductDate.substring(6,8);
+                     displayDateObj = new Date(y, m-1, d);
+                 } 
+                 // ISO 형식 등 긴 문자열인 경우 (2025-12-30T...)
+                 else {
+                     displayDateObj = new Date(item.deductDate);
+                 }
             } 
-            // 없다면 포맷된 문자열 시도
             else if (item.deductDateFormat) {
                 displayDateObj = new Date(item.deductDateFormat);
             } 
-            // 다 없으면 입차시간 기준
             else {
+                displayDateObj = new Date(item.inGateDateTime);
+            }
+
+            // 날짜 객체가 유효하지 않으면 입차 시간으로 fallback
+            if (isNaN(displayDateObj.getTime())) {
                 displayDateObj = new Date(item.inGateDateTime);
             }
 
             const displayDate = formatDate(displayDateObj);
             const displayDay = getDayName(displayDateObj);
 
-            // 2. 수정: 짧은 포맷 적용
             const inDateFull = new Date(item.inGateDateTime);
             const outDateFull = item.outGateDateTime ? new Date(item.outGateDateTime) : null;
-            
             const inTimeStr = formatShortDateTime(inDateFull); 
             const outTimeStr = outDateFull ? formatShortDateTime(outDateFull) : "주차중";
 
@@ -525,16 +472,6 @@
             container.innerHTML += row;
         });
     }
-
-    // 모바일 리스트 스크롤 시 자동 확장 기능
-    document.getElementById('listContainer').addEventListener('scroll', function() {
-        if(window.innerWidth <= 767) {
-             // 살짝만 스크롤해도 확장되도록
-            if (this.scrollTop > 5) {
-                toggleSheet(true);
-            }
-        }
-    });
 </script>
 
 </body>
