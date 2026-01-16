@@ -43,7 +43,7 @@
         @media (min-width: 768px) {
             body { background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%); }
             .app-wrapper {
-                width: 960px; height: 640px;
+                width: 960px; height: 680px; /* 캘린더 공간 위해 높이 약간 증가 */
                 border-radius: var(--radius-outer);
                 box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
                 flex-direction: row; overflow: hidden;
@@ -54,20 +54,23 @@
                 display: flex; flex-direction: column;
             }
             .panel-header {
-                height: 80px; padding: 0 40px;
+                height: 70px; padding: 0 32px; /* 패딩 축소 */
                 display: flex; align-items: center; justify-content: space-between;
                 flex-shrink: 0;
             }
             .panel-content {
-                padding: 40px; display: flex; flex-direction: column;
-                justify-content: flex-start; gap: 30px; overflow-y: auto;
+                padding: 20px 32px; /* 패딩 축소 */
+                display: flex; flex-direction: column;
+                justify-content: flex-start; 
+                gap: 20px; /* 간격 축소 */
+                overflow-y: auto;
             }
             .dashboard-right {
                 width: 58%; padding: 0; background: white;
                 display: flex; flex-direction: column; position: relative;
             }
             .pc-list-header {
-                height: 80px; padding: 0 40px;
+                height: 70px; padding: 0 40px;
                 display: flex !important; border-bottom: 1px solid #f1f5f9;
                 align-items: center; justify-content: space-between; flex-shrink: 0;
             }
@@ -83,38 +86,30 @@
             
             .dashboard-left {
                 /* 하단 여백 조정 */
-                padding: 24px 24px 200px 24px;
+                padding: 16px 20px 200px 20px;
                 width: 100%; height: 100%;
-                display: flex; flex-direction: column; gap: 20px;
+                display: flex; flex-direction: column; gap: 16px; /* 간격 축소 */
                 background: #f8fafc; z-index: 1; overflow-y: auto;
             }
             
             .panel-header {
                 display: flex; justify-content: space-between; align-items: center;
-                margin-bottom: 5px;
+                margin-bottom: 0px;
             }
             .panel-content { display: contents; }
 
-            /* 바텀 시트 스타일 (수정됨) */
+            /* 바텀 시트 */
             .dashboard-right {
-                position: fixed; 
-                bottom: 0; left: 0; right: 0;
-                height: 92dvh; 
-                background: white;
-                /* 1. 디자인 수정: R값 키움 */
-                border-top-left-radius: 32px; 
-                border-top-right-radius: 32px;
-                /* 그림자 진하게 */
+                position: fixed; bottom: 0; left: 0; right: 0;
+                height: 92dvh; background: white;
+                border-top-left-radius: 32px; border-top-right-radius: 32px;
                 box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
                 display: flex; flex-direction: column;
                 z-index: 100;
-                
-                /* 2. 간격 수정: 기본 위치를 더 위로 올림 (180px 노출) */
                 transform: translateY(calc(100% - 190px)); 
                 transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
                 will-change: transform;
             }
-            
             .dashboard-right.dragging { transition: none; }
             .dashboard-right.expanded { transform: translateY(0); }
 
@@ -130,63 +125,98 @@
             .mobile-list-header {
                 display: flex !important; flex-direction: column; align-items: center;
                 padding: 16px 0 10px 0; background: white; border-bottom: 1px solid #f1f5f9;
-                /* R값에 맞춰 헤더도 둥글게 */
-                border-top-left-radius: 32px; 
-                border-top-right-radius: 32px;
+                border-top-left-radius: 32px; border-top-right-radius: 32px;
                 height: 64px; flex-shrink: 0; cursor: grab;
             }
             
-            /* 3. 디자인 수정: 드래그 핸들 바 (UI 힌트) */
-            .drag-handle { 
-                width: 44px; height: 5px; 
-                background: #cbd5e1; /* 색상 진하게 */
-                border-radius: 10px; 
-                margin-bottom: 14px; 
-            }
-            
-            .list-title-text {
+            .drag-handle { width: 44px; height: 5px; background: #cbd5e1; border-radius: 10px; margin-bottom: 14px; }
+            .list-title-text-mobile {
                 font-size: 1.1rem; font-weight: 700; color: var(--text-main);
-                width: 100%; padding-left: 24px; text-align: left;
-                display: none; /* 핸들바 강조를 위해 모바일 텍스트 숨김 (선택사항) */
+                width: 100%; padding-left: 24px; text-align: left; margin-top: -5px;
             }
-            /* 모바일 타이틀 텍스트 다시 표시 (원하시면 display:block) */
-             .list-title-text-mobile {
-                font-size: 1.1rem; font-weight: 700; color: var(--text-main);
-                width: 100%; padding-left: 24px; text-align: left;
-                margin-top: -5px;
-            }
-
-            .list-scroll-area { 
-                padding: 0 24px 100px 24px; 
-                overflow-y: auto; overscroll-behavior: contain;
-            }
+            .list-scroll-area { padding: 0 24px 100px 24px; overflow-y: auto; overscroll-behavior: contain; }
         }
 
         /* === Typography & Components === */
-        h1, .list-header-title { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; margin: 0; color: #111827; }
-        .month-badge { font-size: 1.1rem; color: var(--primary); font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 8px 16px; border-radius: 20px; letter-spacing: -0.5px; }
+        h1, .list-header-title { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.5px; margin: 0; color: #111827; }
+        .month-badge { font-size: 0.95rem; color: var(--primary); font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 6px 12px; border-radius: 20px; letter-spacing: -0.5px; }
         .subtitle { font-size: 0.95rem; color: var(--text-sub); font-weight: 500; }
-        .stat-group { display: flex; flex-direction: column; align-items: center; margin-bottom: 10px; }
-        .stat-label-chip { font-size: 0.8rem; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
+        
+        /* 통계 영역 간격 축소 */
+        .stat-group { display: flex; flex-direction: column; align-items: center; margin-bottom: 5px; }
+        .stat-label-chip { font-size: 0.75rem; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
 
-        .big-number { font-size: 5rem; font-weight: 100; margin: 0; line-height: 1; letter-spacing: -1px; color: var(--text-main); display: flex; justify-content: center; align-items: baseline; gap: 12px; }
-        .big-number span { font-size: 1.5rem; font-weight: 400; color: var(--text-sub); letter-spacing: 0; transform: translateY(-10px); }
+        /* 숫자 크기 약간 축소 (공간 확보) */
+        .big-number { font-size: 4rem; font-weight: 100; margin: 0; line-height: 1; letter-spacing: -1px; color: var(--text-main); display: flex; justify-content: center; align-items: baseline; gap: 8px; }
+        .big-number span { font-size: 1.2rem; font-weight: 400; color: var(--text-sub); letter-spacing: 0; transform: translateY(-8px); }
 
-        .cost-capsule { display: inline-flex; align-items: center; background: white; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 30px; margin-top: 10px; font-size: 0.85rem; color: var(--text-sub); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .cost-capsule { display: inline-flex; align-items: center; background: white; border: 1px solid #e2e8f0; padding: 6px 14px; border-radius: 30px; margin-top: 8px; font-size: 0.8rem; color: var(--text-sub); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .cost-val { font-weight: 700; color: var(--text-main); margin-left: 4px; }
-        .cost-sep { margin: 0 10px; color: #cbd5e1; height: 12px; border-left: 1px solid #cbd5e1; }
+        .cost-sep { margin: 0 8px; color: #cbd5e1; height: 10px; border-left: 1px solid #cbd5e1; }
 
-        .progress-section { width: 100%; margin-top: 10px; }
+        .progress-section { width: 100%; margin-top: 5px; }
         .progress-wrapper { position: relative; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
         .progress-bar { height: 100%; background: var(--primary-gradient); width: 0%; border-radius: 4px; transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
-        .limit-text { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-sub); margin-top: 8px; font-weight: 500; }
+        .limit-text { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-sub); margin-top: 6px; font-weight: 500; }
 
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
-        .info-box { background: white; padding: 20px; border-radius: var(--radius-inner); border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: flex-start; }
-        .info-title { font-size: 0.8rem; color: var(--text-sub); font-weight: 600; margin-bottom: 4px; }
-        .info-value { font-size: 1.4rem; font-weight: 700; color: var(--text-main); letter-spacing: -1px; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+        .info-box { background: white; padding: 16px; border-radius: var(--radius-inner); border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: flex-start; }
+        .info-title { font-size: 0.75rem; color: var(--text-sub); font-weight: 600; margin-bottom: 2px; }
+        .info-value { font-size: 1.2rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.5px; }
         .highlight { color: var(--primary); }
         .warning { color: var(--accent); }
+
+        /* === 캘린더 스타일 (신규) === */
+        .calendar-container {
+            width: 100%;
+            background: white;
+            border-radius: var(--radius-inner);
+            border: 1px solid #e2e8f0;
+            padding: 16px;
+            margin-top: 10px;
+        }
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            margin-bottom: 8px;
+            text-align: center;
+        }
+        .calendar-weekday {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            row-gap: 8px;
+            text-align: center;
+        }
+        .day-cell {
+            font-size: 0.85rem;
+            color: var(--text-main);
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        /* 주차한 날 표시 */
+        .day-cell.parked {
+            color: white;
+            font-weight: 700;
+        }
+        .day-cell.parked::before {
+            content: '';
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            border-radius: 50%;
+            z-index: -1;
+        }
+        .day-cell.empty { pointer-events: none; }
+
 
         .list-scroll-area { flex-grow: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .list-scroll-area::-webkit-scrollbar { width: 6px; }
@@ -242,6 +272,20 @@
                     <div class="info-box"><div class="info-title">남은 시간</div><div class="info-value highlight" id="remainTime">-</div></div>
                     <div class="info-box"><div class="info-title">주차 가능 일수</div><div class="info-value" id="remainDays">-</div></div>
                 </div>
+
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <div class="calendar-weekday" style="color:#ef4444">일</div>
+                        <div class="calendar-weekday">월</div>
+                        <div class="calendar-weekday">화</div>
+                        <div class="calendar-weekday">수</div>
+                        <div class="calendar-weekday">목</div>
+                        <div class="calendar-weekday">금</div>
+                        <div class="calendar-weekday" style="color:#3b82f6">토</div>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid">
+                        </div>
+                </div>
             </div>
         </div>
 
@@ -277,7 +321,6 @@
     let startY = 0;
     let isDragging = false;
     
-    // 2. 수정: 초기 노출 높이를 CSS와 일치시킴 (190px)
     const COLLAPSED_HEIGHT = 190; 
 
     header.addEventListener('touchstart', (e) => {
@@ -289,12 +332,6 @@
     header.addEventListener('touchmove', (e) => {
         if (!isDragging) return;
         e.preventDefault(); 
-        const currentY = e.touches[0].clientY;
-        const deltaY = currentY - startY;
-        const isExpanded = sheet.classList.contains('expanded');
-
-        // 드래그 중 실시간 반응 로직은 성능을 위해 CSS 애니메이션에 의존하도록 간소화
-        // 대신 드래그 제스처만 감지
     }, { passive: false });
 
     header.addEventListener('touchend', (e) => {
@@ -303,7 +340,7 @@
         const endY = e.changedTouches[0].clientY;
         const diff = endY - startY;
 
-        if (Math.abs(diff) > 40) { // 40px 이상 움직이면
+        if (Math.abs(diff) > 40) { 
             if (diff > 0) closeSheet(); 
             else openSheet();
         } else {
@@ -369,6 +406,7 @@
 
             detailData = realData.detail || [];
             updateUI(usedMinutes, baseAmount, addAmount);
+            renderCalendar(now, detailData); // 캘린더 렌더링 호출
             renderList();
         } catch (error) {
             console.error(error);
@@ -377,6 +415,68 @@
                 loader.classList.remove('active');
                 fab.classList.remove('spinning');
             }, 500);
+        }
+    }
+
+    // 캘린더 렌더링 함수
+    function renderCalendar(currentDate, data) {
+        const grid = document.getElementById('calendarGrid');
+        grid.innerHTML = "";
+
+        // 데이터에서 주차한 날짜들(일) 추출
+        const parkedDays = new Set();
+        data.forEach(item => {
+            let dObj = null;
+            if (item.deductDate && item.deductDate.length === 8) {
+                const y = item.deductDate.substring(0,4);
+                const m = item.deductDate.substring(4,6);
+                const d = item.deductDate.substring(6,8);
+                dObj = new Date(y, m-1, d);
+            } else if (item.deductDateFormat) {
+                dObj = new Date(item.deductDateFormat);
+            } else {
+                dObj = new Date(item.inGateDateTime);
+            }
+            if(dObj && !isNaN(dObj.getTime())) {
+                parkedDays.add(dObj.getDate());
+            }
+        });
+
+        // 이번 달 정보 계산
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth(); // 0~11
+        
+        // 이번 달 1일의 요일 (0:일 ~ 6:토)
+        const firstDay = new Date(year, month, 1).getDay();
+        // 이번 달 마지막 날짜
+        const lastDate = new Date(year, month + 1, 0).getDate();
+
+        // 빈 칸 채우기 (1일 이전)
+        for (let i = 0; i < firstDay; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = "day-cell empty";
+            grid.appendChild(emptyCell);
+        }
+
+        // 날짜 채우기
+        for (let day = 1; day <= lastDate; day++) {
+            const cell = document.createElement('div');
+            cell.className = "day-cell";
+            cell.innerText = day;
+
+            // 주차 기록이 있으면 클래스 추가
+            if (parkedDays.has(day)) {
+                cell.classList.add('parked');
+            }
+            
+            // 일요일 빨간색, 토요일 파란색 (선택사항)
+            const checkDate = new Date(year, month, day);
+            if (checkDate.getDay() === 0) cell.style.color = "#ef4444"; // 일요일
+            // if (checkDate.getDay() === 6) cell.style.color = "#3b82f6"; // 토요일
+
+            // 만약 주차한 날(parked)이면 글자색 흰색으로 강제 (CSS에서 처리됨)
+
+            grid.appendChild(cell);
         }
     }
 
@@ -430,14 +530,6 @@
     
     function formatDate(dateObj) {
         return `${String(dateObj.getMonth() + 1).padStart(2, '0')}.${String(dateObj.getDate()).padStart(2, '0')}`;
-    }
-
-    function parseRawDate(str) {
-        if(!str || str.length !== 8) return null;
-        const y = str.substring(0,4);
-        const m = str.substring(4,6);
-        const d = str.substring(6,8);
-        return new Date(y, m-1, d);
     }
 
     function renderList() {
@@ -496,7 +588,6 @@
         });
     }
 
-    // 모바일 리스트 스크롤 시 자동 확장 기능
     document.getElementById('listContainer').addEventListener('scroll', function() {
         if(window.innerWidth <= 767) {
             if (this.scrollTop > 5) {
