@@ -16,7 +16,7 @@
             --text-sub: #6b7280;
             --radius-outer: 24px;
             --radius-inner: 16px;
-            --red-mark: #ef4444; /* 색연필 빨강 */
+            --red-mark: #ef4444; /* 강조색 (빨강) */
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -160,7 +160,7 @@
         .highlight { color: var(--primary); }
         .warning { color: var(--accent); }
 
-        /* === 캘린더 스타일 (업데이트) === */
+        /* === 캘린더 스타일 (수정됨) === */
         .calendar-container {
             width: 100%;
             background: white;
@@ -185,32 +185,28 @@
             grid-template-columns: repeat(7, 1fr);
             row-gap: 8px;
             text-align: center;
+            /* 중요: 동그라미를 가운데 정렬하기 위해 */
+            justify-items: center; 
         }
         .day-cell {
             font-size: 0.85rem;
             color: var(--text-main);
+            /* 정원을 만들기 위한 고정 크기 */
+            width: 32px; 
             height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
+            border-radius: 50%;
         }
         
-        /* 주차한 날 표시 (빨간 색연필 느낌) */
+        /* 주차한 날 표시 (빨간 배경 동그라미) */
         .day-cell.parked {
+            background-color: var(--red-mark); /* 빨간색 채움 */
+            color: white !important; /* 글자는 하얗게 */
             font-weight: 700;
-            /* 글자색은 바꾸지 않음 (기존 색 유지) */
-        }
-        .day-cell.parked::after {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 28px; height: 28px;
-            border: 2px solid var(--red-mark); /* 빨간 테두리 */
-            border-radius: 50%;
-            z-index: -1;
-            box-shadow: 0 0 2px rgba(239, 68, 68, 0.2); /* 살짝 번지는 느낌 */
+            box-shadow: 0 3px 6px rgba(239, 68, 68, 0.3); /* 살짝 그림자 */
         }
         
         .day-cell.empty { pointer-events: none; }
@@ -420,29 +416,20 @@
         const grid = document.getElementById('calendarGrid');
         grid.innerHTML = "";
 
-        // 주차한 날짜 파싱 (Set으로 중복 제거)
         const parkedDays = new Set();
         data.forEach(item => {
             let dObj = null;
-            // 1. 과금일자 8자리 (YYYYMMDD) 우선 확인
             if (item.deductDate && item.deductDate.length === 8 && !isNaN(item.deductDate)) {
                 const y = item.deductDate.substring(0,4);
                 const m = item.deductDate.substring(4,6);
                 const d = item.deductDate.substring(6,8);
                 dObj = new Date(y, m-1, d);
-            } 
-            // 2. 포맷된 과금일자 확인
-            else if (item.deductDateFormat) {
+            } else if (item.deductDateFormat) {
                 dObj = new Date(item.deductDateFormat);
-            } 
-            // 3. 입차일시 확인
-            else {
+            } else {
                 dObj = new Date(item.inGateDateTime);
             }
-            
-            // 유효한 날짜라면 추가
             if(dObj && !isNaN(dObj.getTime())) {
-                // 이번 달 데이터인지 확인 (API가 다른 달 데이터를 줄 수도 있으므로)
                 if (dObj.getMonth() === currentDate.getMonth() && dObj.getFullYear() === currentDate.getFullYear()) {
                     parkedDays.add(dObj.getDate());
                 }
@@ -455,26 +442,22 @@
         const firstDay = new Date(year, month, 1).getDay();
         const lastDate = new Date(year, month + 1, 0).getDate();
 
-        // 빈 칸
         for (let i = 0; i < firstDay; i++) {
             const emptyCell = document.createElement('div');
             emptyCell.className = "day-cell empty";
             grid.appendChild(emptyCell);
         }
 
-        // 날짜 채우기
         for (let day = 1; day <= lastDate; day++) {
             const cell = document.createElement('div');
             cell.className = "day-cell";
             cell.innerText = day;
 
             const checkDate = new Date(year, month, day);
-            
-            // 토/일 색상 처리
-            if (checkDate.getDay() === 0) cell.style.color = "#ef4444"; // 일요일 Red
-            if (checkDate.getDay() === 6) cell.style.color = "#3b82f6"; // 토요일 Blue
+            if (checkDate.getDay() === 0) cell.style.color = "#ef4444"; 
+            if (checkDate.getDay() === 6) cell.style.color = "#3b82f6"; 
 
-            // 주차한 날 마킹 (빨간 동그라미)
+            // 주차한 날 마킹
             if (parkedDays.has(day)) {
                 cell.classList.add('parked');
             }
