@@ -16,7 +16,7 @@
             --text-sub: #6b7280;
             --radius-outer: 24px;
             --radius-inner: 16px;
-            --red-mark: #ef4444; /* 강조색 (빨강) */
+            --red-mark: #ef4444;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -83,7 +83,8 @@
             .app-wrapper { border-radius: 0; background: #f8fafc; }
             
             .dashboard-left {
-                padding: 16px 20px 200px 20px;
+                /* 하단 여백 조정 (시트가 내려갔으므로 여백도 줄임) */
+                padding: 16px 20px 100px 20px;
                 width: 100%; height: 100%;
                 display: flex; flex-direction: column; gap: 16px;
                 background: #f8fafc; z-index: 1; overflow-y: auto;
@@ -95,6 +96,7 @@
             }
             .panel-content { display: contents; }
 
+            /* 바텀 시트 */
             .dashboard-right {
                 position: fixed; bottom: 0; left: 0; right: 0;
                 height: 92dvh; background: white;
@@ -102,7 +104,10 @@
                 box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
                 display: flex; flex-direction: column;
                 z-index: 100;
-                transform: translateY(calc(100% - 190px)); 
+                
+                /* 1. 수정: 기본 노출 높이를 80px로 최소화 (제목만 보임) */
+                transform: translateY(calc(100% - 80px)); 
+                
                 transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
                 will-change: transform;
             }
@@ -160,7 +165,7 @@
         .highlight { color: var(--primary); }
         .warning { color: var(--accent); }
 
-        /* === 캘린더 스타일 (수정됨) === */
+        /* === 캘린더 스타일 === */
         .calendar-container {
             width: 100%;
             background: white;
@@ -185,13 +190,11 @@
             grid-template-columns: repeat(7, 1fr);
             row-gap: 8px;
             text-align: center;
-            /* 중요: 동그라미를 가운데 정렬하기 위해 */
             justify-items: center; 
         }
         .day-cell {
             font-size: 0.85rem;
             color: var(--text-main);
-            /* 정원을 만들기 위한 고정 크기 */
             width: 32px; 
             height: 32px;
             display: flex;
@@ -203,10 +206,10 @@
         
         /* 주차한 날 표시 (빨간 배경 동그라미) */
         .day-cell.parked {
-            background-color: var(--red-mark); /* 빨간색 채움 */
-            color: white !important; /* 글자는 하얗게 */
+            background-color: var(--red-mark); 
+            color: white !important; 
             font-weight: 700;
-            box-shadow: 0 3px 6px rgba(239, 68, 68, 0.3); /* 살짝 그림자 */
+            box-shadow: 0 3px 6px rgba(239, 68, 68, 0.3);
         }
         
         .day-cell.empty { pointer-events: none; }
@@ -315,7 +318,8 @@
     let startY = 0;
     let isDragging = false;
     
-    const COLLAPSED_HEIGHT = 190; 
+    // 2. 수정: 초기 노출 높이를 80px로 수정
+    const COLLAPSED_HEIGHT = 80; 
 
     header.addEventListener('touchstart', (e) => {
         startY = e.touches[0].clientY;
