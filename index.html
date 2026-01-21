@@ -28,6 +28,7 @@
             .panel-content { padding: 20px 32px; display: flex; flex-direction: column; justify-content: flex-start; gap: 20px; overflow-y: auto; }
             .dashboard-right { width: 58%; padding: 0; background: white; display: flex; flex-direction: column; position: relative; }
             .pc-list-header { height: 70px; padding: 0 40px; display: flex !important; border-bottom: 1px solid #f1f5f9; align-items: center; justify-content: space-between; flex-shrink: 0; }
+            .mobile-header-group { display: none; }
             .mobile-list-header { display: none !important; }
             .list-scroll-area { padding: 0 40px 40px 40px; }
             .fab { position: absolute !important; bottom: 30px !important; right: 30px !important; }
@@ -176,13 +177,10 @@
     let detailData = [];
 
     // === 🔥 스마트 프록시 리스트 (차단 우회용) ===
-    // 순서대로 시도합니다. 하나라도 성공하면 데이터를 가져옵니다.
+    // 3가지 프록시를 동시에 쏴서 가장 먼저 '제대로 된' 데이터를 주는 곳을 채택
     const PROXY_LIST = [
-        // 1. AllOrigins Raw (가장 안정적, JSON 직접 반환)
         url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-        // 2. CorsProxy.io (빠름, 가끔 차단됨)
         url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-        // 3. CodeTabs (비상용)
         url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
     ];
 
@@ -252,41 +250,46 @@
         fab.classList.add('spinning');
 
         const yyyymm = getYYYYMM();
-        // 타겟 URL (원본)
         const targetUrl = `http://220.73.4.2:8080/api/kbs/ess/search?date=${yyyymm}&empNo=${CONFIG.empNo}&_=${Date.now()}`;
         
         let realData = null;
 
-        // === 🔄 다중 프록시 시도 로직 ===
-        for (const makeProxyUrl of PROXY_LIST) {
-            try {
+        // === 🚀 동시 요청 경주 (Race) ===
+        // 모든 프록시를 동시에 호출하고, 성공한 데이터 중 가장 빠른 것을 취합니다.
+        try {
+            realData = await Promise.any(PROXY_LIST.map(async (makeProxyUrl) => {
                 const requestUrl = makeProxyUrl(targetUrl);
-                // console.log("Trying proxy:", requestUrl); // 디버깅용
-
                 const response = await fetch(requestUrl);
-                if (!response.ok) continue; // 실패하면 다음 프록시로
-
+                
+                if (!response.ok) throw new Error("Network response was not ok");
+                
                 const json = await response.json();
                 
                 // 데이터 구조 정규화 (AllOrigins는 contents 안에, 나머지는 바로 반환)
+                let data;
                 if (json.contents && typeof json.contents === 'string') {
-                    try { realData = JSON.parse(json.contents); } catch(e) { realData = json; }
+                    try { data = JSON.parse(json.contents); } catch(e) { data = json; }
                 } else {
-                    realData = json;
+                    data = json;
                 }
 
-                // 데이터가 유효한지 확인 (summary나 detail이 있어야 함)
-                if (realData && (realData.summary || realData.detail)) {
-                    // 성공! 루프 종료
-                    break;
+                // **중요**: 데이터가 비어있거나(0건), summary가 없으면 실패로 간주하고 에러를 던짐 (그래야 다른 프록시를 기다림)
+                if (!data || (!data.summary && !data.detail)) {
+                    throw new Error("Invalid or Empty Data");
                 }
-            } catch (e) {
-                console.warn("Proxy failed, trying next...", e);
-            }
+                
+                // 유효한 데이터면 반환
+                return data;
+            }));
+
+        } catch (error) {
+            console.error("All proxies failed:", error);
+            // alert("모든 서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.");
         }
 
         try {
-            if (!realData) throw new Error("All proxies failed or no data");
+            // 데이터가 없으면 종료
+            if (!realData) throw new Error("No Valid Data");
             
             let usedMinutes = 0;
             let baseAmount = 0;
@@ -305,8 +308,7 @@
             renderCalendar(now, detailData); 
             renderList();
         } catch (error) {
-            console.error("Final Error:", error);
-            // alert("데이터를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.");
+            console.error("Processing Error:", error);
         } finally {
             setTimeout(() => {
                 loader.classList.remove('active');
