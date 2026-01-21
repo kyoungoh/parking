@@ -6,9 +6,18 @@
     <title>주차 현황 대시보드</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
-        :root { --primary: #3b82f6; --primary-dark: #2563eb; --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); --bg-color: #f3f4f6; --card-bg: #ffffff; --text-main: #1f2937; --text-sub: #6b7280; --radius-outer: 24px; --radius-inner: 16px; --red-mark: #ef4444; }
+        :root {
+            --primary: #3b82f6; --primary-dark: #2563eb; --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            --bg-color: #f3f4f6; --card-bg: #ffffff; --text-main: #1f2937; --text-sub: #6b7280;
+            --radius-outer: 24px; --radius-inner: 16px; --red-mark: #ef4444;
+        }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; width: 100%; height: 100dvh; overflow: hidden; overscroll-behavior: none; display: flex; justify-content: center; align-items: center; color: var(--text-main); }
+        body {
+            font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-color); margin: 0; padding: 0; 
+            width: 100%; height: 100dvh; overflow: hidden; overscroll-behavior: none;
+            display: flex; justify-content: center; align-items: center; color: var(--text-main);
+        }
         .app-wrapper { width: 100%; height: 100%; background: var(--card-bg); display: flex; flex-direction: column; position: relative; overflow: hidden; }
         
         @media (min-width: 768px) {
@@ -19,7 +28,6 @@
             .panel-content { padding: 20px 32px; display: flex; flex-direction: column; justify-content: flex-start; gap: 20px; overflow-y: auto; }
             .dashboard-right { width: 58%; padding: 0; background: white; display: flex; flex-direction: column; position: relative; }
             .pc-list-header { height: 70px; padding: 0 40px; display: flex !important; border-bottom: 1px solid #f1f5f9; align-items: center; justify-content: space-between; flex-shrink: 0; }
-            .mobile-header-group { display: none; }
             .mobile-list-header { display: none !important; }
             .list-scroll-area { padding: 0 40px 40px 40px; }
             .fab { position: absolute !important; bottom: 30px !important; right: 30px !important; }
@@ -27,16 +35,24 @@
 
         @media (max-width: 767px) {
             .app-wrapper { border-radius: 0; background: #f8fafc; }
-            .dashboard-left { padding: 16px 20px 200px 20px; width: 100%; height: 100%; display: flex; flex-direction: column; gap: 16px; background: #f8fafc; z-index: 1; overflow-y: auto; }
+            .dashboard-left { padding: 16px 20px 100px 20px; width: 100%; height: 100%; display: flex; flex-direction: column; gap: 16px; background: #f8fafc; z-index: 1; overflow-y: auto; }
             .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0px; }
             .panel-content { display: contents; }
-            .dashboard-right { position: fixed; bottom: 0; left: 0; right: 0; height: 92dvh; background: white; border-top-left-radius: 32px; border-top-right-radius: 32px; box-shadow: 0 -8px 30px rgba(0,0,0,0.12); display: flex; flex-direction: column; z-index: 100; transform: translateY(calc(100% - 80px)); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); will-change: transform; }
+            .dashboard-right {
+                position: fixed; bottom: 0; left: 0; right: 0; height: 92dvh; background: white;
+                border-top-left-radius: 32px; border-top-right-radius: 32px; box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
+                display: flex; flex-direction: column; z-index: 100;
+                transform: translateY(calc(100% - 80px)); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); will-change: transform;
+            }
             .dashboard-right.dragging { transition: none; }
             .dashboard-right.expanded { transform: translateY(0); }
             .backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.4s; z-index: 90; }
             .backdrop.active { opacity: 1; pointer-events: all; }
             .pc-list-header { display: none !important; }
-            .mobile-list-header { display: flex !important; flex-direction: column; align-items: center; padding: 16px 0 10px 0; background: white; border-bottom: 1px solid #f1f5f9; border-top-left-radius: 32px; border-top-right-radius: 32px; height: 64px; flex-shrink: 0; cursor: grab; }
+            .mobile-list-header {
+                display: flex !important; flex-direction: column; align-items: center; padding: 16px 0 10px 0; background: white; border-bottom: 1px solid #f1f5f9;
+                border-top-left-radius: 32px; border-top-right-radius: 32px; height: 64px; flex-shrink: 0; cursor: grab;
+            }
             .drag-handle { width: 44px; height: 5px; background: #cbd5e1; border-radius: 10px; margin-bottom: 14px; }
             .list-title-text-mobile { font-size: 1.1rem; font-weight: 700; color: var(--text-main); width: 100%; padding-left: 24px; text-align: left; margin-top: -5px; }
             .list-scroll-area { padding: 0 24px 100px 24px; overflow-y: auto; overscroll-behavior: contain; }
@@ -98,7 +114,7 @@
         <div class="dashboard-left">
             <div class="panel-header">
                 <h1>주차 현황</h1>
-                <div class="month-badge" id="dateDisplay">2025년 12월</div>
+                <div class="month-badge" id="dateDisplay">Loading...</div>
             </div>
 
             <div class="panel-content">
@@ -158,6 +174,17 @@
 <script>
     const CONFIG = { empNo: "31633", maxMinutes: 5400, dailyMax: 540 };
     let detailData = [];
+
+    // === 🔥 스마트 프록시 리스트 (차단 우회용) ===
+    // 순서대로 시도합니다. 하나라도 성공하면 데이터를 가져옵니다.
+    const PROXY_LIST = [
+        // 1. AllOrigins Raw (가장 안정적, JSON 직접 반환)
+        url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        // 2. CorsProxy.io (빠름, 가끔 차단됨)
+        url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        // 3. CodeTabs (비상용)
+        url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+    ];
 
     const sheet = document.getElementById('bottomSheet');
     const header = document.getElementById('sheetHeader');
@@ -225,16 +252,41 @@
         fab.classList.add('spinning');
 
         const yyyymm = getYYYYMM();
+        // 타겟 URL (원본)
         const targetUrl = `http://220.73.4.2:8080/api/kbs/ess/search?date=${yyyymm}&empNo=${CONFIG.empNo}&_=${Date.now()}`;
         
-        // 🔥 CORS Proxy 사용 (가장 확실한 해결책)
-        const requestUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+        let realData = null;
+
+        // === 🔄 다중 프록시 시도 로직 ===
+        for (const makeProxyUrl of PROXY_LIST) {
+            try {
+                const requestUrl = makeProxyUrl(targetUrl);
+                // console.log("Trying proxy:", requestUrl); // 디버깅용
+
+                const response = await fetch(requestUrl);
+                if (!response.ok) continue; // 실패하면 다음 프록시로
+
+                const json = await response.json();
+                
+                // 데이터 구조 정규화 (AllOrigins는 contents 안에, 나머지는 바로 반환)
+                if (json.contents && typeof json.contents === 'string') {
+                    try { realData = JSON.parse(json.contents); } catch(e) { realData = json; }
+                } else {
+                    realData = json;
+                }
+
+                // 데이터가 유효한지 확인 (summary나 detail이 있어야 함)
+                if (realData && (realData.summary || realData.detail)) {
+                    // 성공! 루프 종료
+                    break;
+                }
+            } catch (e) {
+                console.warn("Proxy failed, trying next...", e);
+            }
+        }
 
         try {
-            const response = await fetch(requestUrl);
-            const realData = await response.json(); // corsproxy.io는 바로 JSON을 줍니다.
-            
-            if (!realData) throw new Error("No Data");
+            if (!realData) throw new Error("All proxies failed or no data");
             
             let usedMinutes = 0;
             let baseAmount = 0;
@@ -253,7 +305,8 @@
             renderCalendar(now, detailData); 
             renderList();
         } catch (error) {
-            console.error(error);
+            console.error("Final Error:", error);
+            // alert("데이터를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.");
         } finally {
             setTimeout(() => {
                 loader.classList.remove('active');
