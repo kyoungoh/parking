@@ -6,7 +6,6 @@
     <title>주차 현황 대시보드</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
-        /* 기존 스타일 그대로 유지 */
         :root { --primary: #3b82f6; --primary-dark: #2563eb; --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); --bg-color: #f3f4f6; --card-bg: #ffffff; --text-main: #1f2937; --text-sub: #6b7280; --radius-outer: 24px; --radius-inner: 16px; --red-mark: #ef4444; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; width: 100%; height: 100dvh; overflow: hidden; overscroll-behavior: none; display: flex; justify-content: center; align-items: center; color: var(--text-main); }
@@ -157,11 +156,6 @@
     </div>
 
 <script>
-    // =========================================================
-    // 👇👇 여기에 2단계에서 만든 Cloudflare 주소를 넣으세요 👇👇
-    const MY_PROXY_URL = "https://parking-proxy.kyngohh.workers.dev/";
-    // =========================================================
-
     const CONFIG = { empNo: "31633", maxMinutes: 5400, dailyMax: 540 };
     let detailData = [];
 
@@ -233,30 +227,12 @@
         const yyyymm = getYYYYMM();
         const targetUrl = `http://220.73.4.2:8080/api/kbs/ess/search?date=${yyyymm}&empNo=${CONFIG.empNo}&_=${Date.now()}`;
         
-        // 커스텀 프록시 사용 (설정 안되어있으면 백업 사용)
-        let requestUrl = "";
-        if (MY_PROXY_URL.includes("workers.dev")) {
-            requestUrl = `${MY_PROXY_URL}?url=${encodeURIComponent(targetUrl)}`;
-        } else {
-            // 백업용 (느릴 수 있음)
-            requestUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
-        }
+        // 🔥 CORS Proxy 사용 (가장 확실한 해결책)
+        const requestUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
 
         try {
             const response = await fetch(requestUrl);
-            
-            // Cloudflare Worker는 JSON을 바로 줄수도 있고, allorigins는 .contents 안에 줌
-            // 응답 처리 로직
-            let realData;
-            const json = await response.json();
-
-            if (json.contents) {
-                // AllOrigins 방식
-                realData = JSON.parse(json.contents);
-            } else {
-                // Cloudflare Worker가 바로 데이터를 준 경우
-                realData = json; 
-            }
+            const realData = await response.json(); // corsproxy.io는 바로 JSON을 줍니다.
             
             if (!realData) throw new Error("No Data");
             
@@ -278,7 +254,6 @@
             renderList();
         } catch (error) {
             console.error(error);
-            // 에러 발생 시 알림 (선택사항)
         } finally {
             setTimeout(() => {
                 loader.classList.remove('active');
