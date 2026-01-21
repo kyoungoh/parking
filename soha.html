@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>주차 현황 대시보드</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <style>
+        :root {
+            --primary: #3b82f6; --primary-dark: #2563eb; --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            --bg-color: #f3f4f6; --card-bg: #ffffff; --text-main: #1f2937; --text-sub: #6b7280;
+            --radius-outer: 24px; --radius-inner: 16px; --red-mark: #ef4444;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-color); margin: 0; padding: 0; 
+            width: 100%; height: 100dvh; overflow: hidden; overscroll-behavior: none;
+            display: flex; justify-content: center; align-items: center; color: var(--text-main);
+        }
+        .app-wrapper { width: 100%; height: 100%; background: var(--card-bg); display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        
+        @media (min-width: 768px) {
+            body { background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%); }
+            .app-wrapper { width: 960px; height: 680px; border-radius: var(--radius-outer); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); flex-direction: row; overflow: hidden; }
+            .dashboard-left { width: 42%; background: #f8fafc; padding: 0; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; }
+            .panel-header { height: 70px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+            .panel-content { padding: 20px 32px; display: flex; flex-direction: column; justify-content: flex-start; gap: 20px; overflow-y: auto; }
+            .dashboard-right { width: 58%; padding: 0; background: white; display: flex; flex-direction: column; position: relative; }
+            .pc-list-header { height: 70px; padding: 0 40px; display: flex !important; border-bottom: 1px solid #f1f5f9; align-items: center; justify-content: space-between; flex-shrink: 0; }
+            .mobile-header-group { display: none; }
+            .mobile-list-header { display: none !important; }
+            .list-scroll-area { padding: 0 40px 40px 40px; }
+            .fab { position: absolute !important; bottom: 30px !important; right: 30px !important; }
+        }
+
+        @media (max-width: 767px) {
+            .app-wrapper { border-radius: 0; background: #f8fafc; }
+            .dashboard-left { padding: 16px 20px 100px 20px; width: 100%; height: 100%; display: flex; flex-direction: column; gap: 16px; background: #f8fafc; z-index: 1; overflow-y: auto; }
+            .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0px; }
+            .panel-content { display: contents; }
+            .dashboard-right {
+                position: fixed; bottom: 0; left: 0; right: 0; height: 92dvh; background: white;
+                border-top-left-radius: 32px; border-top-right-radius: 32px; box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
+                display: flex; flex-direction: column; z-index: 100;
+                transform: translateY(calc(100% - 80px)); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); will-change: transform;
+            }
+            .dashboard-right.dragging { transition: none; }
+            .dashboard-right.expanded { transform: translateY(0); }
+            .backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.4s; z-index: 90; }
+            .backdrop.active { opacity: 1; pointer-events: all; }
+            .pc-list-header { display: none !important; }
+            .mobile-list-header {
+                display: flex !important; flex-direction: column; align-items: center; padding: 16px 0 10px 0; background: white; border-bottom: 1px solid #f1f5f9;
+                border-top-left-radius: 32px; border-top-right-radius: 32px; height: 64px; flex-shrink: 0; cursor: grab;
+            }
+            .drag-handle { width: 44px; height: 5px; background: #cbd5e1; border-radius: 10px; margin-bottom: 14px; }
+            .list-title-text-mobile { font-size: 1.1rem; font-weight: 700; color: var(--text-main); width: 100%; padding-left: 24px; text-align: left; margin-top: -5px; }
+            .list-scroll-area { padding: 0 24px 100px 24px; overflow-y: auto; overscroll-behavior: contain; }
+        }
+
+        h1, .list-header-title { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.5px; margin: 0; color: #111827; }
+        .month-badge { font-size: 0.95rem; color: var(--primary); font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 6px 12px; border-radius: 20px; letter-spacing: -0.5px; }
+        .subtitle { font-size: 0.95rem; color: var(--text-sub); font-weight: 500; }
+        .stat-group { display: flex; flex-direction: column; align-items: center; margin-bottom: 5px; }
+        .stat-label-chip { font-size: 0.75rem; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
+        .big-number { font-size: 4rem; font-weight: 100; margin: 0; line-height: 1; letter-spacing: -1px; color: var(--text-main); display: flex; justify-content: center; align-items: baseline; gap: 8px; }
+        .big-number span { font-size: 1.2rem; font-weight: 400; color: var(--text-sub); letter-spacing: 0; transform: translateY(-8px); }
+        .cost-capsule { display: inline-flex; align-items: center; background: white; border: 1px solid #e2e8f0; padding: 6px 14px; border-radius: 30px; margin-top: 8px; font-size: 0.8rem; color: var(--text-sub); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .cost-val { font-weight: 700; color: var(--text-main); margin-left: 4px; }
+        .cost-sep { margin: 0 8px; color: #cbd5e1; height: 10px; border-left: 1px solid #cbd5e1; }
+        .progress-section { width: 100%; margin-top: 5px; }
+        .progress-wrapper { position: relative; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+        .progress-bar { height: 100%; background: var(--primary-gradient); width: 0%; border-radius: 4px; transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+        .limit-text { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-sub); margin-top: 6px; font-weight: 500; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
+        .info-box { background: white; padding: 16px; border-radius: var(--radius-inner); border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: flex-start; }
+        .info-title { font-size: 0.75rem; color: var(--text-sub); font-weight: 600; margin-bottom: 2px; }
+        .info-value { font-size: 1.2rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.5px; }
+        .highlight { color: var(--primary); }
+        .warning { color: var(--accent); }
+        .calendar-container { width: 100%; background: white; border-radius: var(--radius-inner); border: 1px solid #e2e8f0; padding: 16px; margin-top: 10px; }
+        .calendar-header { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 8px; text-align: center; }
+        .calendar-weekday { font-size: 0.75rem; color: var(--text-sub); font-weight: 500; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 8px; text-align: center; justify-items: center; }
+        .day-cell { font-size: 0.85rem; color: var(--text-main); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; position: relative; border-radius: 50%; }
+        .day-cell.parked { background-color: var(--red-mark); color: white !important; font-weight: 700; box-shadow: 0 3px 6px rgba(239, 68, 68, 0.3); }
+        .day-cell.empty { pointer-events: none; }
+        .list-scroll-area { flex-grow: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .list-scroll-area::-webkit-scrollbar { width: 6px; }
+        .list-scroll-area::-webkit-scrollbar-track { background: transparent; }
+        .list-scroll-area::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
+        .log-item { padding: 18px 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; animation: slideUp 0.4s ease-out forwards; opacity: 0; transform: translateY(10px); }
+        .log-left { display: flex; flex-direction: column; gap: 4px; }
+        .log-date { font-size: 1rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+        .log-day { font-size: 0.8rem; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; }
+        .log-time { font-size: 0.85rem; color: var(--text-sub); letter-spacing: -0.3px; }
+        .log-badge { font-size: 0.9rem; font-weight: 700; color: var(--primary-dark); background: #eff6ff; padding: 8px 12px; border-radius: 12px; min-width: 80px; text-align: center; white-space: nowrap; }
+        .fab { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; background: var(--text-main); border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.25); border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; z-index: 100; transition: transform 0.2s; }
+        .fab:active { transform: scale(0.95); }
+        .fab svg { fill: white; width: 24px; height: 24px; transition: transform 0.5s; }
+        .fab.spinning svg { transform: rotate(360deg); }
+        .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 120; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+        .loading-overlay.active { opacity: 1; pointer-events: all; }
+        .spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <div class="backdrop" id="backdrop" onclick="closeSheet()"></div>
+
+        <div class="dashboard-left">
+            <div class="panel-header">
+                <h1>주차 현황</h1>
+                <div class="month-badge" id="dateDisplay">Loading...</div>
+            </div>
+
+            <div class="panel-content">
+                <div class="stat-group">
+                    <span class="stat-label-chip">Total Usage</span>
+                    <div class="big-number" id="usedTimeMain">0<span>분</span></div>
+                    <div class="cost-capsule">
+                        기본 <span class="cost-val" id="baseCost">0</span>원
+                        <div class="cost-sep"></div>
+                        추가 <span class="cost-val" id="addCost">0</span>원
+                    </div>
+                </div>
+                <div class="progress-section">
+                    <div class="progress-wrapper"><div class="progress-bar" id="progressBar"></div></div>
+                    <div class="limit-text"><span id="percentText">0%</span><span>최대 5,400분</span></div>
+                </div>
+                <div class="info-grid">
+                    <div class="info-box"><div class="info-title">남은 시간</div><div class="info-value highlight" id="remainTime">-</div></div>
+                    <div class="info-box"><div class="info-title">주차 가능 일수</div><div class="info-value" id="remainDays">-</div></div>
+                </div>
+
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <div class="calendar-weekday" style="color:#ef4444">일</div>
+                        <div class="calendar-weekday">월</div>
+                        <div class="calendar-weekday">화</div>
+                        <div class="calendar-weekday">수</div>
+                        <div class="calendar-weekday">목</div>
+                        <div class="calendar-weekday">금</div>
+                        <div class="calendar-weekday" style="color:#3b82f6">토</div>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-right" id="bottomSheet">
+            <div class="pc-list-header">
+                <span class="list-header-title">상세 기록</span>
+                <span class="subtitle" id="pcDateDisplay">Loading...</span>
+            </div>
+            
+            <div class="mobile-list-header" id="sheetHeader">
+                <div class="drag-handle"></div>
+                <div class="list-title-text-mobile">상세 기록</div>
+            </div>
+
+            <div class="list-scroll-area" id="listContainer"></div>
+        </div>
+
+        <button class="fab" onclick="fetchData()">
+            <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        </button>
+        <div class="loading-overlay" id="loader"><div class="spinner"></div></div>
+    </div>
+
+<script>
+    const CONFIG = { empNo: "32124", maxMinutes: 5400, dailyMax: 540 };
+    let detailData = [];
+
+    // === 🔥 스마트 프록시 리스트 (차단 우회용) ===
+    // 3가지 프록시를 동시에 쏴서 가장 먼저 '제대로 된' 데이터를 주는 곳을 채택
+    const PROXY_LIST = [
+        url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+    ];
+
+    const sheet = document.getElementById('bottomSheet');
+    const header = document.getElementById('sheetHeader');
+    const backdrop = document.getElementById('backdrop');
+
+    let startY = 0;
+    let isDragging = false;
+    
+    header.addEventListener('touchstart', (e) => {
+        startY = e.touches[0].clientY;
+        isDragging = true;
+        sheet.classList.add('dragging'); 
+    });
+
+    header.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault(); 
+    }, { passive: false });
+
+    header.addEventListener('touchend', (e) => {
+        isDragging = false;
+        sheet.classList.remove('dragging');
+        const endY = e.changedTouches[0].clientY;
+        const diff = endY - startY;
+
+        if (Math.abs(diff) > 40) { 
+            if (diff > 0) closeSheet(); 
+            else openSheet();
+        } else {
+             if (sheet.classList.contains('expanded')) closeSheet();
+             else openSheet();
+        }
+    });
+    
+    header.addEventListener('click', () => {
+        if (sheet.classList.contains('expanded')) closeSheet();
+        else openSheet();
+    });
+
+    function openSheet() {
+        sheet.classList.add('expanded');
+        backdrop.classList.add('active');
+    }
+
+    function closeSheet() {
+        sheet.classList.remove('expanded');
+        backdrop.classList.remove('active');
+    }
+
+    function getYYYYMM() {
+        const d = new Date();
+        return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0');
+    }
+
+    const now = new Date();
+    document.getElementById('dateDisplay').innerText = `${now.getFullYear()}년 ${now.getMonth() + 1}월`;
+    document.getElementById('pcDateDisplay').innerText = `${now.getFullYear()}. ${now.getMonth() + 1}`;
+    
+    fetchData();
+
+    async function fetchData() {
+        const loader = document.getElementById('loader');
+        const fab = document.querySelector('.fab');
+        loader.classList.add('active');
+        fab.classList.add('spinning');
+
+        const yyyymm = getYYYYMM();
+        const targetUrl = `http://220.73.4.2:8080/api/kbs/ess/search?date=${yyyymm}&empNo=${CONFIG.empNo}&_=${Date.now()}`;
+        
+        let realData = null;
+
+        // === 🚀 동시 요청 경주 (Race) ===
+        // 모든 프록시를 동시에 호출하고, 성공한 데이터 중 가장 빠른 것을 취합니다.
+        try {
+            realData = await Promise.any(PROXY_LIST.map(async (makeProxyUrl) => {
+                const requestUrl = makeProxyUrl(targetUrl);
+                const response = await fetch(requestUrl);
+                
+                if (!response.ok) throw new Error("Network response was not ok");
+                
+                const json = await response.json();
+                
+                // 데이터 구조 정규화 (AllOrigins는 contents 안에, 나머지는 바로 반환)
+                let data;
+                if (json.contents && typeof json.contents === 'string') {
+                    try { data = JSON.parse(json.contents); } catch(e) { data = json; }
+                } else {
+                    data = json;
+                }
+
+                // **중요**: 데이터가 비어있거나(0건), summary가 없으면 실패로 간주하고 에러를 던짐 (그래야 다른 프록시를 기다림)
+                if (!data || (!data.summary && !data.detail)) {
+                    throw new Error("Invalid or Empty Data");
+                }
+                
+                // 유효한 데이터면 반환
+                return data;
+            }));
+
+        } catch (error) {
+            console.error("All proxies failed:", error);
+            // alert("모든 서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.");
+        }
+
+        try {
+            // 데이터가 없으면 종료
+            if (!realData) throw new Error("No Valid Data");
+            
+            let usedMinutes = 0;
+            let baseAmount = 0;
+            let addAmount = 0;
+
+            if (realData.summary && realData.summary.length > 0) {
+                const summary = realData.summary[0];
+                const rawTime = String(summary.applyTime); 
+                usedMinutes = parseInt(rawTime.replace(/,/g, '')) || 0;
+                baseAmount = parseInt(String(summary.baseAmount).replace(/,/g, '')) || 0;
+                addAmount = parseInt(String(summary.addAmount).replace(/,/g, '')) || 0;
+            }
+
+            detailData = realData.detail || [];
+            updateUI(usedMinutes, baseAmount, addAmount);
+            renderCalendar(now, detailData); 
+            renderList();
+        } catch (error) {
+            console.error("Processing Error:", error);
+        } finally {
+            setTimeout(() => {
+                loader.classList.remove('active');
+                fab.classList.remove('spinning');
+            }, 500);
+        }
+    }
+
+    function renderCalendar(currentDate, data) {
+        const grid = document.getElementById('calendarGrid');
+        grid.innerHTML = "";
+
+        const parkedDays = new Set();
+        data.forEach(item => {
+            let dObj = null;
+            if (item.deductDate && item.deductDate.length === 8 && !isNaN(item.deductDate)) {
+                const y = item.deductDate.substring(0,4);
+                const m = item.deductDate.substring(4,6);
+                const d = item.deductDate.substring(6,8);
+                dObj = new Date(y, m-1, d);
+            } else if (item.deductDateFormat) {
+                dObj = new Date(item.deductDateFormat);
+            } else {
+                dObj = new Date(item.inGateDateTime);
+            }
+            if(dObj && !isNaN(dObj.getTime())) {
+                if (dObj.getMonth() === currentDate.getMonth() && dObj.getFullYear() === currentDate.getFullYear()) {
+                    parkedDays.add(dObj.getDate());
+                }
+            }
+        });
+
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth(); 
+        
+        const firstDay = new Date(year, month, 1).getDay();
+        const lastDate = new Date(year, month + 1, 0).getDate();
+
+        for (let i = 0; i < firstDay; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = "day-cell empty";
+            grid.appendChild(emptyCell);
+        }
+
+        for (let day = 1; day <= lastDate; day++) {
+            const cell = document.createElement('div');
+            cell.className = "day-cell";
+            cell.innerText = day;
+
+            const checkDate = new Date(year, month, day);
+            if (checkDate.getDay() === 0) cell.style.color = "#ef4444"; 
+            if (checkDate.getDay() === 6) cell.style.color = "#3b82f6"; 
+
+            if (parkedDays.has(day)) {
+                cell.classList.add('parked');
+            }
+
+            grid.appendChild(cell);
+        }
+    }
+
+    function updateUI(used, base, add) {
+        const remain = CONFIG.maxMinutes - used;
+        const days = (remain / CONFIG.dailyMax).toFixed(1);
+        const percent = Math.min(100, (used / CONFIG.maxMinutes) * 100).toFixed(1);
+
+        animateValue("usedTimeMain", used);
+        document.getElementById('baseCost').innerText = base.toLocaleString();
+        document.getElementById('addCost').innerText = add.toLocaleString();
+        const remainEl = document.getElementById('remainTime');
+        remainEl.innerText = `${remain.toLocaleString()}분`; 
+        remainEl.className = remain < 0 ? "info-value warning" : "info-value highlight";
+        document.getElementById('remainDays').innerText = `${days}일`;
+        document.getElementById('progressBar').style.width = `${percent}%`;
+        document.getElementById('percentText').innerText = `${Math.round(percent)}%`;
+        if(remain < 0) document.getElementById('progressBar').style.background = "#f43f5e";
+        else document.getElementById('progressBar').style.background = "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)";
+    }
+
+    function animateValue(id, end) {
+        const obj = document.getElementById(id);
+        const current = parseInt(obj.innerText.replace(/,/g, '')) || 0;
+        if(current === end) return;
+        const duration = 800;
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            const ease = 1 - Math.pow(1 - progress, 3); 
+            const val = Math.floor(ease * (end - current) + current);
+            obj.innerHTML = `${val.toLocaleString()}<span>분</span>`;
+            if (progress < 1) window.requestAnimationFrame(step);
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    function formatShortDateTime(dateObj) {
+        const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const dd = String(dateObj.getDate()).padStart(2, '0');
+        const hh = String(dateObj.getHours()).padStart(2, '0');
+        const min = String(dateObj.getMinutes()).padStart(2, '0');
+        return `${mm}-${dd} ${hh}:${min}`;
+    }
+
+    function getDayName(dateObj) {
+        const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+        return dayNames[dateObj.getDay()];
+    }
+    
+    function formatDate(dateObj) {
+        return `${String(dateObj.getMonth() + 1).padStart(2, '0')}.${String(dateObj.getDate()).padStart(2, '0')}`;
+    }
+
+    function renderList() {
+        const container = document.getElementById('listContainer');
+        container.innerHTML = ""; 
+
+        if (detailData.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding: 40px; color:#94a3b8;"><p>이번 달 기록이 없습니다.</p></div>`;
+            return;
+        }
+
+        detailData.sort((a, b) => new Date(b.inGateDateTime) - new Date(a.inGateDateTime));
+
+        detailData.forEach((item, index) => {
+            let displayDateObj = null;
+
+            if (item.deductDate) {
+                 if (item.deductDate.length === 8 && !isNaN(item.deductDate)) {
+                     const y = item.deductDate.substring(0,4);
+                     const m = item.deductDate.substring(4,6);
+                     const d = item.deductDate.substring(6,8);
+                     displayDateObj = new Date(y, m-1, d);
+                 } else {
+                     displayDateObj = new Date(item.deductDate);
+                 }
+            } else if (item.deductDateFormat) {
+                displayDateObj = new Date(item.deductDateFormat);
+            } else {
+                displayDateObj = new Date(item.inGateDateTime);
+            }
+
+            if (isNaN(displayDateObj.getTime())) {
+                displayDateObj = new Date(item.inGateDateTime);
+            }
+
+            const displayDate = formatDate(displayDateObj);
+            const displayDay = getDayName(displayDateObj);
+
+            const inDateFull = new Date(item.inGateDateTime);
+            const outDateFull = item.outGateDateTime ? new Date(item.outGateDateTime) : null;
+            const inTimeStr = formatShortDateTime(inDateFull); 
+            const outTimeStr = outDateFull ? formatShortDateTime(outDateFull) : "주차중";
+
+            const row = `
+                <div class="log-item" style="animation-delay: ${index * 0.05}s">
+                    <div class="log-left">
+                        <div class="log-date">
+                            ${displayDate} <span class="log-day">${displayDay}</span>
+                        </div>
+                        <div class="log-time">${inTimeStr} ~ ${outTimeStr}</div>
+                    </div>
+                    <div class="log-badge">${item.applyTime}분 주차</div>
+                </div>
+            `;
+            container.innerHTML += row;
+        });
+    }
+
+    document.getElementById('listContainer').addEventListener('scroll', function() {
+        if(window.innerWidth <= 767) {
+            if (this.scrollTop > 5) {
+                toggleSheet(true);
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
