@@ -6,236 +6,87 @@
     <title>주차 현황 대시보드</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
-        :root {
-            --primary: #3b82f6;
-            --primary-dark: #2563eb;
-            --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            --bg-color: #f3f4f6;
-            --card-bg: #ffffff;
-            --text-main: #1f2937;
-            --text-sub: #6b7280;
-            --radius-outer: 24px;
-            --radius-inner: 16px;
-            --red-mark: #ef4444;
-        }
-
+        /* 기존 스타일 그대로 유지 */
+        :root { --primary: #3b82f6; --primary-dark: #2563eb; --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); --bg-color: #f3f4f6; --card-bg: #ffffff; --text-main: #1f2937; --text-sub: #6b7280; --radius-outer: 24px; --radius-inner: 16px; --red-mark: #ef4444; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-            background-color: var(--bg-color);
-            margin: 0; padding: 0; 
-            width: 100%; height: 100dvh; 
-            overflow: hidden; 
-            overscroll-behavior: none;
-            display: flex; justify-content: center; align-items: center;
-            color: var(--text-main);
-        }
-
-        /* === App Container === */
-        .app-wrapper {
-            width: 100%; height: 100%;
-            background: var(--card-bg);
-            display: flex; flex-direction: column;
-            position: relative; overflow: hidden;
-        }
-
-        /* === PC (768px 이상) === */
+        body { font-family: "Pretendard Variable", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; background-color: var(--bg-color); margin: 0; padding: 0; width: 100%; height: 100dvh; overflow: hidden; overscroll-behavior: none; display: flex; justify-content: center; align-items: center; color: var(--text-main); }
+        .app-wrapper { width: 100%; height: 100%; background: var(--card-bg); display: flex; flex-direction: column; position: relative; overflow: hidden; }
+        
         @media (min-width: 768px) {
             body { background: linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%); }
-            .app-wrapper {
-                width: 960px; height: 680px;
-                border-radius: var(--radius-outer);
-                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
-                flex-direction: row; overflow: hidden;
-            }
-            .dashboard-left {
-                width: 42%; background: #f8fafc; padding: 0;
-                border-right: 1px solid #e2e8f0;
-                display: flex; flex-direction: column;
-            }
-            .panel-header {
-                height: 70px; padding: 0 32px;
-                display: flex; align-items: center; justify-content: space-between;
-                flex-shrink: 0;
-            }
-            .panel-content {
-                padding: 20px 32px; display: flex; flex-direction: column;
-                justify-content: flex-start; gap: 20px; overflow-y: auto;
-            }
-            .dashboard-right {
-                width: 58%; padding: 0; background: white;
-                display: flex; flex-direction: column; position: relative;
-            }
-            .pc-list-header {
-                height: 70px; padding: 0 40px;
-                display: flex !important; border-bottom: 1px solid #f1f5f9;
-                align-items: center; justify-content: space-between; flex-shrink: 0;
-            }
+            .app-wrapper { width: 960px; height: 680px; border-radius: var(--radius-outer); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15); flex-direction: row; overflow: hidden; }
+            .dashboard-left { width: 42%; background: #f8fafc; padding: 0; border-right: 1px solid #e2e8f0; display: flex; flex-direction: column; }
+            .panel-header { height: 70px; padding: 0 32px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+            .panel-content { padding: 20px 32px; display: flex; flex-direction: column; justify-content: flex-start; gap: 20px; overflow-y: auto; }
+            .dashboard-right { width: 58%; padding: 0; background: white; display: flex; flex-direction: column; position: relative; }
+            .pc-list-header { height: 70px; padding: 0 40px; display: flex !important; border-bottom: 1px solid #f1f5f9; align-items: center; justify-content: space-between; flex-shrink: 0; }
             .mobile-header-group { display: none; }
             .mobile-list-header { display: none !important; }
             .list-scroll-area { padding: 0 40px 40px 40px; }
             .fab { position: absolute !important; bottom: 30px !important; right: 30px !important; }
         }
 
-        /* === Mobile (767px 이하) === */
         @media (max-width: 767px) {
             .app-wrapper { border-radius: 0; background: #f8fafc; }
-            
-            .dashboard-left {
-                /* 하단 여백 조정 (시트가 내려갔으므로 여백도 줄임) */
-                padding: 16px 20px 100px 20px;
-                width: 100%; height: 100%;
-                display: flex; flex-direction: column; gap: 16px;
-                background: #f8fafc; z-index: 1; overflow-y: auto;
-            }
-            
-            .panel-header {
-                display: flex; justify-content: space-between; align-items: center;
-                margin-bottom: 0px;
-            }
+            .dashboard-left { padding: 16px 20px 200px 20px; width: 100%; height: 100%; display: flex; flex-direction: column; gap: 16px; background: #f8fafc; z-index: 1; overflow-y: auto; }
+            .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0px; }
             .panel-content { display: contents; }
-
-            /* 바텀 시트 */
-            .dashboard-right {
-                position: fixed; bottom: 0; left: 0; right: 0;
-                height: 92dvh; background: white;
-                border-top-left-radius: 32px; border-top-right-radius: 32px;
-                box-shadow: 0 -8px 30px rgba(0,0,0,0.12);
-                display: flex; flex-direction: column;
-                z-index: 100;
-                
-                /* 1. 수정: 기본 노출 높이를 80px로 최소화 (제목만 보임) */
-                transform: translateY(calc(100% - 80px)); 
-                
-                transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-                will-change: transform;
-            }
+            .dashboard-right { position: fixed; bottom: 0; left: 0; right: 0; height: 92dvh; background: white; border-top-left-radius: 32px; border-top-right-radius: 32px; box-shadow: 0 -8px 30px rgba(0,0,0,0.12); display: flex; flex-direction: column; z-index: 100; transform: translateY(calc(100% - 80px)); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); will-change: transform; }
             .dashboard-right.dragging { transition: none; }
             .dashboard-right.expanded { transform: translateY(0); }
-
-            .backdrop {
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-                background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none;
-                transition: opacity 0.4s; z-index: 90;
-            }
+            .backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: opacity 0.4s; z-index: 90; }
             .backdrop.active { opacity: 1; pointer-events: all; }
-
             .pc-list-header { display: none !important; }
-            
-            .mobile-list-header {
-                display: flex !important; flex-direction: column; align-items: center;
-                padding: 16px 0 10px 0; background: white; border-bottom: 1px solid #f1f5f9;
-                border-top-left-radius: 32px; border-top-right-radius: 32px;
-                height: 64px; flex-shrink: 0; cursor: grab;
-            }
-            
+            .mobile-list-header { display: flex !important; flex-direction: column; align-items: center; padding: 16px 0 10px 0; background: white; border-bottom: 1px solid #f1f5f9; border-top-left-radius: 32px; border-top-right-radius: 32px; height: 64px; flex-shrink: 0; cursor: grab; }
             .drag-handle { width: 44px; height: 5px; background: #cbd5e1; border-radius: 10px; margin-bottom: 14px; }
-            .list-title-text-mobile {
-                font-size: 1.1rem; font-weight: 700; color: var(--text-main);
-                width: 100%; padding-left: 24px; text-align: left; margin-top: -5px;
-            }
+            .list-title-text-mobile { font-size: 1.1rem; font-weight: 700; color: var(--text-main); width: 100%; padding-left: 24px; text-align: left; margin-top: -5px; }
             .list-scroll-area { padding: 0 24px 100px 24px; overflow-y: auto; overscroll-behavior: contain; }
         }
 
-        /* === Typography & Components === */
         h1, .list-header-title { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.5px; margin: 0; color: #111827; }
         .month-badge { font-size: 0.95rem; color: var(--primary); font-weight: 600; background: rgba(59, 130, 246, 0.1); padding: 6px 12px; border-radius: 20px; letter-spacing: -0.5px; }
         .subtitle { font-size: 0.95rem; color: var(--text-sub); font-weight: 500; }
-        
         .stat-group { display: flex; flex-direction: column; align-items: center; margin-bottom: 5px; }
         .stat-label-chip { font-size: 0.75rem; font-weight: 700; color: var(--text-sub); text-transform: uppercase; letter-spacing: 1px; }
-
         .big-number { font-size: 4rem; font-weight: 100; margin: 0; line-height: 1; letter-spacing: -1px; color: var(--text-main); display: flex; justify-content: center; align-items: baseline; gap: 8px; }
         .big-number span { font-size: 1.2rem; font-weight: 400; color: var(--text-sub); letter-spacing: 0; transform: translateY(-8px); }
-
         .cost-capsule { display: inline-flex; align-items: center; background: white; border: 1px solid #e2e8f0; padding: 6px 14px; border-radius: 30px; margin-top: 8px; font-size: 0.8rem; color: var(--text-sub); box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .cost-val { font-weight: 700; color: var(--text-main); margin-left: 4px; }
         .cost-sep { margin: 0 8px; color: #cbd5e1; height: 10px; border-left: 1px solid #cbd5e1; }
-
         .progress-section { width: 100%; margin-top: 5px; }
         .progress-wrapper { position: relative; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
         .progress-bar { height: 100%; background: var(--primary-gradient); width: 0%; border-radius: 4px; transition: width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
         .limit-text { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-sub); margin-top: 6px; font-weight: 500; }
-
         .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
         .info-box { background: white; padding: 16px; border-radius: var(--radius-inner); border: 1px solid #e2e8f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: flex-start; }
         .info-title { font-size: 0.75rem; color: var(--text-sub); font-weight: 600; margin-bottom: 2px; }
         .info-value { font-size: 1.2rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.5px; }
         .highlight { color: var(--primary); }
         .warning { color: var(--accent); }
-
-        /* === 캘린더 스타일 === */
-        .calendar-container {
-            width: 100%;
-            background: white;
-            border-radius: var(--radius-inner);
-            border: 1px solid #e2e8f0;
-            padding: 16px;
-            margin-top: 10px;
-        }
-        .calendar-header {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            margin-bottom: 8px;
-            text-align: center;
-        }
-        .calendar-weekday {
-            font-size: 0.75rem;
-            color: var(--text-sub);
-            font-weight: 500;
-        }
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            row-gap: 8px;
-            text-align: center;
-            justify-items: center; 
-        }
-        .day-cell {
-            font-size: 0.85rem;
-            color: var(--text-main);
-            width: 32px; 
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            border-radius: 50%;
-        }
-        
-        /* 주차한 날 표시 (빨간 배경 동그라미) */
-        .day-cell.parked {
-            background-color: var(--red-mark); 
-            color: white !important; 
-            font-weight: 700;
-            box-shadow: 0 3px 6px rgba(239, 68, 68, 0.3);
-        }
-        
+        .calendar-container { width: 100%; background: white; border-radius: var(--radius-inner); border: 1px solid #e2e8f0; padding: 16px; margin-top: 10px; }
+        .calendar-header { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 8px; text-align: center; }
+        .calendar-weekday { font-size: 0.75rem; color: var(--text-sub); font-weight: 500; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 8px; text-align: center; justify-items: center; }
+        .day-cell { font-size: 0.85rem; color: var(--text-main); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; position: relative; border-radius: 50%; }
+        .day-cell.parked { background-color: var(--red-mark); color: white !important; font-weight: 700; box-shadow: 0 3px 6px rgba(239, 68, 68, 0.3); }
         .day-cell.empty { pointer-events: none; }
-
-
         .list-scroll-area { flex-grow: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .list-scroll-area::-webkit-scrollbar { width: 6px; }
         .list-scroll-area::-webkit-scrollbar-track { background: transparent; }
         .list-scroll-area::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 3px; }
-
         .log-item { padding: 18px 0; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; animation: slideUp 0.4s ease-out forwards; opacity: 0; transform: translateY(10px); }
         .log-left { display: flex; flex-direction: column; gap: 4px; }
         .log-date { font-size: 1rem; font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
         .log-day { font-size: 0.8rem; font-weight: 600; color: #64748b; background: #f1f5f9; padding: 3px 8px; border-radius: 6px; }
         .log-time { font-size: 0.85rem; color: var(--text-sub); letter-spacing: -0.3px; }
         .log-badge { font-size: 0.9rem; font-weight: 700; color: var(--primary-dark); background: #eff6ff; padding: 8px 12px; border-radius: 12px; min-width: 80px; text-align: center; white-space: nowrap; }
-
         .fab { position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; background: var(--text-main); border-radius: 50%; box-shadow: 0 4px 15px rgba(0,0,0,0.25); border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; z-index: 100; transition: transform 0.2s; }
         .fab:active { transform: scale(0.95); }
         .fab svg { fill: white; width: 24px; height: 24px; transition: transform 0.5s; }
         .fab.spinning svg { transform: rotate(360deg); }
-
         .loading-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 120; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
         .loading-overlay.active { opacity: 1; pointer-events: all; }
         .spinner { width: 40px; height: 40px; border: 3px solid #e2e8f0; border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
-
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -280,8 +131,7 @@
                         <div class="calendar-weekday">금</div>
                         <div class="calendar-weekday" style="color:#3b82f6">토</div>
                     </div>
-                    <div class="calendar-grid" id="calendarGrid">
-                        </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
                 </div>
             </div>
         </div>
@@ -297,8 +147,7 @@
                 <div class="list-title-text-mobile">상세 기록</div>
             </div>
 
-            <div class="list-scroll-area" id="listContainer">
-                </div>
+            <div class="list-scroll-area" id="listContainer"></div>
         </div>
 
         <button class="fab" onclick="fetchData()">
@@ -308,6 +157,11 @@
     </div>
 
 <script>
+    // =========================================================
+    // 👇👇 여기에 2단계에서 만든 Cloudflare 주소를 넣으세요 👇👇
+    const MY_PROXY_URL = "https://parking-proxy.kyngohh.workers.dev/";
+    // =========================================================
+
     const CONFIG = { empNo: "31633", maxMinutes: 5400, dailyMax: 540 };
     let detailData = [];
 
@@ -318,9 +172,6 @@
     let startY = 0;
     let isDragging = false;
     
-    // 2. 수정: 초기 노출 높이를 80px로 수정
-    const COLLAPSED_HEIGHT = 80; 
-
     header.addEventListener('touchstart', (e) => {
         startY = e.touches[0].clientY;
         isDragging = true;
@@ -380,15 +231,34 @@
         fab.classList.add('spinning');
 
         const yyyymm = getYYYYMM();
-        const apiUrl = `http://220.73.4.2:8080/api/kbs/ess/search?date=${yyyymm}&empNo=${CONFIG.empNo}&_=${Date.now()}`;
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(apiUrl)}`;
+        const targetUrl = `http://220.73.4.2:8080/api/kbs/ess/search?date=${yyyymm}&empNo=${CONFIG.empNo}&_=${Date.now()}`;
+        
+        // 커스텀 프록시 사용 (설정 안되어있으면 백업 사용)
+        let requestUrl = "";
+        if (MY_PROXY_URL.includes("workers.dev")) {
+            requestUrl = `${MY_PROXY_URL}?url=${encodeURIComponent(targetUrl)}`;
+        } else {
+            // 백업용 (느릴 수 있음)
+            requestUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+        }
 
         try {
-            const response = await fetch(proxyUrl);
-            const data = await response.json();
-            if (!data.contents) throw new Error("No Data");
+            const response = await fetch(requestUrl);
             
-            const realData = JSON.parse(data.contents);
+            // Cloudflare Worker는 JSON을 바로 줄수도 있고, allorigins는 .contents 안에 줌
+            // 응답 처리 로직
+            let realData;
+            const json = await response.json();
+
+            if (json.contents) {
+                // AllOrigins 방식
+                realData = JSON.parse(json.contents);
+            } else {
+                // Cloudflare Worker가 바로 데이터를 준 경우
+                realData = json; 
+            }
+            
+            if (!realData) throw new Error("No Data");
             
             let usedMinutes = 0;
             let baseAmount = 0;
@@ -408,6 +278,7 @@
             renderList();
         } catch (error) {
             console.error(error);
+            // 에러 발생 시 알림 (선택사항)
         } finally {
             setTimeout(() => {
                 loader.classList.remove('active');
@@ -461,7 +332,6 @@
             if (checkDate.getDay() === 0) cell.style.color = "#ef4444"; 
             if (checkDate.getDay() === 6) cell.style.color = "#3b82f6"; 
 
-            // 주차한 날 마킹
             if (parkedDays.has(day)) {
                 cell.classList.add('parked');
             }
